@@ -7,6 +7,8 @@ export interface CampaignData {
   description: string
   channels: ('Text' | 'Voice' | 'Calls')[]
   toneOfVoice?: 'friendly' | 'professional' | 'energetic' | 'formal' | 'casual'
+  wordLimit?: number // in words
+  voiceDuration?: number // in minutes (1, 2, or 3)
   assets: File[]
   contacts: { name: string; phone: string }[]
 }
@@ -24,6 +26,8 @@ export const CampaignProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     description: '',
     channels: [],
     toneOfVoice: undefined,
+    wordLimit: undefined,
+    voiceDuration: 1,
     assets: [],
     contacts: [],
   })

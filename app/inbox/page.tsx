@@ -6,11 +6,10 @@ import { useRouter } from 'next/navigation'
 
 interface Message {
   id: string
-  sender: 'user' | 'contact'
-  type: 'text' | 'voice' | 'call'
+  sender: 'user' | 'ai'
+  type: 'text'
   content: string
   timestamp: string
-  duration?: string
 }
 
 interface Contact {
@@ -20,6 +19,7 @@ interface Contact {
   lastMessage: string
   timestamp: string
   unread: boolean
+  profilePic?: string
 }
 
 interface Campaign {
@@ -42,6 +42,7 @@ const MOCK_CAMPAIGNS: Campaign[] = [
         lastMessage: 'Thanks for reaching out!',
         timestamp: '10:30 AM',
         unread: true,
+        profilePic: 'https://i.pravatar.cc/150?img=1',
       },
       {
         id: 'c2',
@@ -50,6 +51,7 @@ const MOCK_CAMPAIGNS: Campaign[] = [
         lastMessage: 'Interested in the offer',
         timestamp: '9:15 AM',
         unread: false,
+        profilePic: 'https://i.pravatar.cc/150?img=5',
       },
       {
         id: 'c3',
@@ -58,6 +60,7 @@ const MOCK_CAMPAIGNS: Campaign[] = [
         lastMessage: 'No thanks',
         timestamp: 'Yesterday',
         unread: false,
+        profilePic: 'https://i.pravatar.cc/150?img=3',
       },
     ],
     messages: [],
@@ -73,6 +76,7 @@ const MOCK_CAMPAIGNS: Campaign[] = [
         lastMessage: 'Can you tell me more?',
         timestamp: '2:45 PM',
         unread: true,
+        profilePic: 'https://i.pravatar.cc/150?img=9',
       },
       {
         id: 'c5',
@@ -81,6 +85,7 @@ const MOCK_CAMPAIGNS: Campaign[] = [
         lastMessage: 'Sounds great!',
         timestamp: '12:00 PM',
         unread: false,
+        profilePic: 'https://i.pravatar.cc/150?img=7',
       },
     ],
     messages: [],
@@ -98,18 +103,10 @@ const mockMessages: Record<string, Message[]> = {
     },
     {
       id: 'm2',
-      sender: 'contact',
+      sender: 'ai',
       type: 'text',
       content: 'Thanks for reaching out! Tell me more about it.',
       timestamp: '10:30 AM',
-    },
-    {
-      id: 'm3',
-      sender: 'user',
-      type: 'voice',
-      content: 'Voice message',
-      timestamp: '10:35 AM',
-      duration: '0:45',
     },
   ],
   'c2': [
@@ -122,7 +119,7 @@ const mockMessages: Record<string, Message[]> = {
     },
     {
       id: 'm5',
-      sender: 'contact',
+      sender: 'ai',
       type: 'text',
       content: 'Interested in the offer',
       timestamp: '9:15 AM',
@@ -138,18 +135,10 @@ const mockMessages: Record<string, Message[]> = {
     },
     {
       id: 'm7',
-      sender: 'contact',
+      sender: 'ai',
       type: 'text',
       content: 'Can you tell me more?',
       timestamp: '2:45 PM',
-    },
-    {
-      id: 'm8',
-      sender: 'user',
-      type: 'call',
-      content: 'Outgoing call',
-      timestamp: '3:00 PM',
-      duration: '5:23',
     },
   ],
 }
@@ -171,20 +160,50 @@ const InboxPage = () => {
     MOCK_CAMPAIGNS[0].contacts[0].id
   )
   const [searchTerm, setSearchTerm] = useState('')
+  const [messages, setMessages] = useState<Record<string, Message[]>>(mockMessages)
 
   const selectedCampaign = campaigns.find((c) => c.id === selectedCampaignId)
   const selectedContact = selectedCampaign?.contacts.find(
     (c) => c.id === selectedContactId
   )
-  const selectedMessages = mockMessages[selectedContactId] || []
+  const selectedMessages = messages[selectedContactId] || []
 
   const filteredContacts = selectedCampaign?.contacts.filter((c) =>
     c.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const handleSendMessage = (text: string) => {
-    // Mock sending message
-    alert(`Message sent to ${selectedContact?.name}: "${text}"`)
+    if (!text.trim()) return
+
+    // Add user message
+    const newMessage: Message = {
+      id: `m${Date.now()}`,
+      sender: 'user',
+      type: 'text',
+      content: text,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    }
+
+    const updatedMessages = [...(messages[selectedContactId] || []), newMessage]
+    setMessages({ ...messages, [selectedContactId]: updatedMessages })
+
+    // Simulate AI response after a delay
+    setTimeout(() => {
+      const aiMessage: Message = {
+        id: `m${Date.now()}`,
+        sender: 'ai',
+        type: 'text',
+        content: 'Thanks for your message! How can I help you?',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      }
+      updatedMessages.push(aiMessage)
+      setMessages({ ...messages, [selectedContactId]: updatedMessages })
+    }, 500)
+  }
+
+  const handleDeleteMessage = (messageId: string) => {
+    const updatedMessages = messages[selectedContactId].filter((m) => m.id !== messageId)
+    setMessages({ ...messages, [selectedContactId]: updatedMessages })
   }
 
   if (!isSignedIn) {
@@ -192,159 +211,167 @@ const InboxPage = () => {
   }
 
   return (
-    <div className='h-screen bg-zinc-900 text-white flex'>
-      {/* Left Panel - Campaigns */}
-      <div className='w-64 bg-zinc-800 border-r border-zinc-700 flex flex-col'>
-        <div className='p-4 border-b border-zinc-700'>
-          <h2 className='text-xl font-bold'>Campaigns</h2>
-        </div>
-        <div className='flex-1 overflow-y-auto'>
-          {campaigns.map((campaign) => (
-            <button
-              key={campaign.id}
-              onClick={() => {
-                setSelectedCampaignId(campaign.id)
-                setSelectedContactId(campaign.contacts[0].id)
-              }}
-              className={`w-full text-left p-4 border-b border-zinc-700 hover:bg-zinc-700 transition ${
-                selectedCampaignId === campaign.id ? 'bg-purple-600' : ''
-              }`}
-            >
-              <p className='font-semibold text-sm truncate'>{campaign.name}</p>
-              <p className='text-xs text-gray-400 mt-1'>
-                {campaign.contacts.length} contact{campaign.contacts.length !== 1 ? 's' : ''}
-              </p>
-            </button>
-          ))}
-        </div>
+    <div className='h-screen bg-white text-gray-900 flex flex-col'>
+      {/* Back Button Header */}
+      <div className='border-b border-gray-300 p-4'>
+        <button
+          onClick={() => router.back()}
+          className='text-xl font-medium text-black px-2 py-1.5 border-2 border-black rounded-xl hover:bg-black/10 transition cursor-pointer'
+          title="Go back"
+        >
+          Back
+        </button>
       </div>
 
-      {/* Middle Panel - Contacts */}
-      <div className='w-72 bg-zinc-800 border-r border-zinc-700 flex flex-col'>
-        <div className='p-4 border-b border-zinc-700'>
-          <input
-            type='text'
-            placeholder='Search contacts...'
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className='w-full px-3 py-2 bg-zinc-700 text-white rounded-lg border border-zinc-600 focus:border-purple-500 focus:outline-none text-sm'
-          />
-        </div>
-        <div className='flex-1 overflow-y-auto'>
-          {filteredContacts?.map((contact) => (
-            <button
-              key={contact.id}
-              onClick={() => setSelectedContactId(contact.id)}
-              className={`w-full text-left p-4 border-b border-zinc-700 hover:bg-zinc-700 transition ${
-                selectedContactId === contact.id ? 'bg-purple-600' : ''
-              } ${contact.unread ? 'font-bold' : ''}`}
-            >
-              <div className='flex items-start justify-between'>
-                <div className='flex-1'>
-                  <p className='text-sm'>{contact.name}</p>
-                  <p className='text-xs text-gray-400 mt-1 truncate'>
-                    {contact.lastMessage}
-                  </p>
-                </div>
-                {contact.unread && (
-                  <div className='w-2 h-2 bg-purple-600 rounded-full mt-1'></div>
-                )}
-              </div>
-              <p className='text-xs text-gray-500 mt-1'>{contact.timestamp}</p>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Right Panel - Messages */}
-      <div className='flex-1 bg-zinc-900 flex flex-col'>
-        {/* Chat Header */}
-        <div className='bg-zinc-800 border-b border-zinc-700 p-4 flex items-center justify-between'>
-          <div>
-            <h3 className='text-lg font-bold'>{selectedContact?.name}</h3>
-            <p className='text-xs text-gray-400'>{selectedContact?.phone}</p>
+      <div className='flex-1 flex'>
+        {/* Left Panel - Campaigns */}
+        <div className='w-64 bg-gray-50 border-r border-gray-300 flex flex-col'>
+          <div className='p-4 border-b border-gray-300'>
+            <h2 className='text-xl font-bold text-gray-900'>WhatsApp Business</h2>
           </div>
-          <div className='flex gap-2'>
-            <button className='bg-zinc-700 hover:bg-zinc-600 px-3 py-2 rounded-lg text-sm transition'>
-              📞
-            </button>
-            <button className='bg-zinc-700 hover:bg-zinc-600 px-3 py-2 rounded-lg text-sm transition'>
-              ⋯
-            </button>
-          </div>
-        </div>
-
-        {/* Messages Area */}
-        <div className='flex-1 overflow-y-auto p-4 space-y-4'>
-          {selectedMessages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${
-                message.sender === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-            >
-              <div
-                className={`max-w-xs px-4 py-3 rounded-lg ${
-                  message.sender === 'user'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-zinc-700 text-gray-100'
-                }`}
+          <div className='flex-1 overflow-y-auto'>
+            {campaigns.map((campaign) => (
+              <button
+                key={campaign.id}
+                onClick={() => {
+                  setSelectedCampaignId(campaign.id)
+                  setSelectedContactId(campaign.contacts[0].id)
+                }}
+                className={`w-full text-left p-4 border-b border-gray-200 hover:bg-gray-100 transition ${selectedCampaignId === campaign.id ? 'bg-green-100 border-l-4 border-l-green-500' : ''
+                  }`}
               >
-                {message.type === 'text' && (
-                  <p className='text-sm'>{message.content}</p>
-                )}
-
-                {message.type === 'voice' && (
-                  <div className='space-y-2'>
-                    <p className='text-xs text-gray-300 mb-2'>🎙️ Voice Message</p>
-                    <div className='flex items-center gap-2'>
-                      <button className='bg-white/20 hover:bg-white/30 px-2 py-1 rounded text-xs transition'>
-                        ▶
-                      </button>
-                      <div className='h-1 w-20 bg-white/20 rounded'></div>
-                      <span className='text-xs'>{message.duration}</span>
-                    </div>
-                  </div>
-                )}
-
-                {message.type === 'call' && (
-                  <div className='space-y-2'>
-                    <p className='text-xs font-semibold'>📞 {message.content}</p>
-                    <p className='text-xs text-gray-300'>Duration: {message.duration}</p>
-                  </div>
-                )}
-
-                <p className='text-xs opacity-70 mt-1'>{message.timestamp}</p>
-              </div>
-            </div>
-          ))}
+                <p className='font-semibold text-sm truncate text-gray-900'>{campaign.name}</p>
+                <p className='text-xs text-gray-600 mt-1'>
+                  {campaign.contacts.length} contact{campaign.contacts.length !== 1 ? 's' : ''}
+                </p>
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Input Area */}
-        <div className='bg-zinc-800 border-t border-zinc-700 p-4'>
-          <div className='flex gap-2'>
+        {/* Middle Panel - Contacts */}
+        <div className='w-72 bg-white border-r border-gray-300 flex flex-col'>
+          <div className='p-4 border-b border-gray-300'>
             <input
               type='text'
-              placeholder='Type a message...'
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                  handleSendMessage(e.currentTarget.value)
-                  e.currentTarget.value = ''
-                }
-              }}
-              className='flex-1 px-4 py-2 bg-zinc-700 text-white rounded-lg border border-zinc-600 focus:border-purple-500 focus:outline-none text-sm'
+              placeholder='Search contacts...'
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className='w-full px-3 py-2 bg-gray-100 text-gray-900 rounded-full border border-gray-300 focus:border-green-500 focus:outline-none text-sm placeholder-gray-500'
             />
-            <button className='bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg text-sm transition'>
-              Send
-            </button>
           </div>
-          <div className='flex gap-2 mt-2'>
-            <button className='text-xs bg-zinc-700 hover:bg-zinc-600 px-3 py-1 rounded transition'>
-              🎤 Voice
-            </button>
-            <button className='text-xs bg-zinc-700 hover:bg-zinc-600 px-3 py-1 rounded transition'>
-              📞 Call
-            </button>
+          <div className='flex-1 overflow-y-auto'>
+            {filteredContacts?.map((contact) => (
+              <button
+                key={contact.id}
+                onClick={() => setSelectedContactId(contact.id)}
+                className={`w-full text-left p-4 border-b border-gray-200 hover:bg-gray-50 transition ${selectedContactId === contact.id ? 'bg-gray-100' : ''
+                  }`}
+              >
+                <div className='flex items-start justify-between gap-3'>
+                  <img
+                    src={contact.profilePic || 'https://i.pravatar.cc/150'}
+                    alt={contact.name}
+                    className='w-12 h-12 rounded-full object-cover flex-shrink-0'
+                  />
+                  <div className='flex-1 min-w-0'>
+                    <p className='text-sm font-medium text-gray-900'>{contact.name}</p>
+                    <p className='text-xs text-gray-600 mt-1 truncate'>
+                      {contact.lastMessage}
+                    </p>
+                  </div>
+                  {contact.unread && (
+                    <div className='w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold ml-2 flex-shrink-0'>
+                      1
+                    </div>
+                  )}
+                </div>
+                <p className='text-xs text-gray-500 mt-1'>{contact.timestamp}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Panel - Messages */}
+        <div className='flex-1 bg-gray-50 flex flex-col'>
+          {/* Chat Header */}
+          <div className='bg-white border-b border-gray-300 p-4 flex items-center justify-between'>
+            <div>
+              <h3 className='text-lg font-bold text-gray-900'>{selectedContact?.name}</h3>
+              <p className='text-xs text-gray-600'>{selectedContact?.phone}</p>
+            </div>
+          </div>
+
+          {/* Messages Area */}
+          <div
+            className='flex-1 overflow-y-auto p-4 space-y-3 bg-cover bg-center relative'
+            style={{
+              backgroundImage: 'url(https://i.postimg.cc/VNpNSfZ8/messages-background.png)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            {/* Messages */}
+            <div className='relative z-10 flex flex-col space-y-3'>
+              {selectedMessages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.sender === 'user' ? 'justify-start' : 'justify-end'
+                    } group`}
+                >
+                  <div className='flex items-end gap-2'>
+                    <div
+                      className={`max-w-xs px-4 py-2 rounded-lg break-words shadow-sm ${message.sender === 'user'
+                          ? 'bg-gray-200 text-gray-900'
+                          : 'bg-green-500 text-white'
+                        }`}
+                    >
+                      <p className='text-sm'>{message.content}</p>
+                      <p className='text-xs mt-1 opacity-70'>{message.timestamp}</p>
+                    </div>
+
+                    {/* Delete Button - Only for User Messages */}
+                    {message.sender === 'user' && (
+                      <button
+                        onClick={() => handleDeleteMessage(message.id)}
+                        className='opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs mb-1'
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Input Area */}
+          <div className='bg-white border-t border-gray-300 p-4'>
+            <div className='flex gap-2'>
+              <input
+                type='text'
+                placeholder='Message'
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                    handleSendMessage(e.currentTarget.value)
+                    e.currentTarget.value = ''
+                  }
+                }}
+                className='flex-1 px-4 py-2 bg-gray-100 text-gray-900 rounded-full border border-gray-300 focus:border-green-500 focus:outline-none text-sm placeholder-gray-500'
+              />
+              <button
+                onClick={() => {
+                  const input = document.querySelector('input[placeholder="Message"]') as HTMLInputElement
+                  if (input && input.value.trim()) {
+                    handleSendMessage(input.value)
+                    input.value = ''
+                  }
+                }}
+                className='bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-sm transition font-medium'
+              >
+                Send
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -127,9 +127,9 @@ export default function PreviewPage() {
       <div className="flex items-center justify-between gap-3 pt-4 mt-6 border-t border-white/10">
         <Link
           href="/campaign/contacts"
-          className="text-white/80 hover:text-white text-sm font-medium cursor-pointer"
+          className="px-6 py-2.5 rounded-lg bg-black/40 border border-white/20 hover:bg-black/50 text-white font-medium transition cursor-pointer"
         >
-          ← Back
+           Back
         </Link>
         <div className="flex gap-3">
           <button

@@ -9,10 +9,14 @@ export default function ChannelsPage() {
   const { campaign, updateCampaign } = useCampaign()
   const [channels, setChannels] = useState<('Text' | 'Voice' | 'Calls')[]>(campaign.channels)
   const [tone, setTone] = useState(campaign.toneOfVoice || 'professional')
+  const [wordLimit, setWordLimit] = useState(campaign.wordLimit || 100)
+  const [voiceDuration, setVoiceDuration] = useState(campaign.voiceDuration || 1)
   const [error, setError] = useState('')
 
   const channelOptions = ['Text', 'Voice', 'Calls'] as const
   const toneOptions = ['friendly', 'professional', 'energetic', 'formal', 'casual'] as const
+  const wordLimitOptions = [50, 100, 150, 200, 300] as const
+  const voiceDurationOptions = [1, 2, 3] as const
 
   const toggleChannel = (channel: 'Text' | 'Voice' | 'Calls') => {
     setChannels((prev) => (prev.includes(channel) ? prev.filter((c) => c !== channel) : [...prev, channel]))
@@ -24,11 +28,18 @@ export default function ChannelsPage() {
       setError('Please select at least one channel')
       return
     }
-    updateCampaign({ channels, toneOfVoice: tone as any })
+    updateCampaign({ 
+      channels, 
+      toneOfVoice: tone as any,
+      wordLimit: channels.includes('Text') ? wordLimit : undefined,
+      voiceDuration: (channels.includes('Voice') || channels.includes('Calls')) ? voiceDuration : undefined
+    })
     router.push('/campaign/assets')
   }
 
   const showTone = channels.includes('Voice') || channels.includes('Calls')
+  const showWordLimit = channels.includes('Text')
+  const showVoiceDuration = channels.includes('Voice') || channels.includes('Calls')
 
   return (
     <div className="space-y-6">
@@ -76,6 +87,51 @@ export default function ChannelsPage() {
               </button>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Text Word Limit */}
+      {showWordLimit && (
+        <div>
+          <h3 className="text-sm  text-white mb-3">Word limit</h3>
+          <div className="flex flex-wrap gap-2">
+            {wordLimitOptions.map((limit) => (
+              <button
+                key={limit}
+                onClick={() => setWordLimit(limit)}
+                className={`px-4 py-2 rounded-lg text-sm cursor-pointer transition ${
+                  wordLimit === limit
+                    ? 'bg-white text-black hover:bg-white/95 shadow-[0_4px_12px_rgba(255,255,255,0.2)]'
+                    : 'bg-black/40 border border-white/20 text-white/70 hover:bg-black/50'
+                }`}
+              >
+                {limit} words
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Voice Duration */}
+      {showVoiceDuration && (
+        <div>
+          <h3 className="text-sm  text-white mb-3">Voice message duration</h3>
+          <div className="flex flex-wrap gap-2">
+            {voiceDurationOptions.map((duration) => (
+              <button
+                key={duration}
+                onClick={() => setVoiceDuration(duration)}
+                className={`px-4 py-2 rounded-lg text-sm cursor-pointer transition ${
+                  voiceDuration === duration
+                    ? 'bg-white text-black hover:bg-white/95 shadow-[0_4px_12px_rgba(255,255,255,0.2)]'
+                    : 'bg-black/40 border border-white/20 text-white/70 hover:bg-black/50'
+                }`}
+              >
+                {duration} min
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-white/50 mt-2">Default: 1 minute</p>
         </div>
       )}
 

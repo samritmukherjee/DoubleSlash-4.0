@@ -14,7 +14,7 @@ const Navbar = () => {
       <div className='flex justify-between gap-5'>
         <SignedOut>
           <SignInButton mode="modal">
-            <button className='bg-white text-black p-2 rounded-xl font-["Helvetica"] cursor-pointer hover:bg-gray-200 '>
+            <button className='bg-white text-black px-2 py-1.5 rounded-xl font-["Helvetica"] cursor-pointer hover:bg-gray-200 '>
               Login
             </button>
           </SignInButton>

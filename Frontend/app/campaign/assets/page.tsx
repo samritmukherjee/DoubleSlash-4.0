@@ -305,7 +305,7 @@ export default function AssetsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 campaign-page-enter">
       <div>
         <h1 className="text-3xl  text-white mb-2">Add campaign assets</h1>
         <p className="text-slate-400">Upload files or generate images with AI</p>

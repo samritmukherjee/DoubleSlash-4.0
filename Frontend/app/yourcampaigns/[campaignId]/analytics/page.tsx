@@ -138,10 +138,10 @@ export default function CampaignAnalyticsPage() {
       <div className="max-w-7xl mx-auto px-6 py-10 relative z-10">
 
         {/* ── Page header ── */}
-        <div className="mb-10">
+        <div className="mb-10 text-center">
           <p className="text-xs text-white/30 uppercase tracking-widest mb-2">Campaign Analytics</p>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Performance Overview</h1>
-          <p className="text-white/40 mt-2">Real-time metrics · <span className="text-white/70 font-medium">{campaignName ?? campaignId}</span></p>
+          <h1 className="text-3xl md:text-6xl font-normal tracking-tight">Performance Overview</h1>
+          <p className="text-2xl text-white/70 font-normal mt-2">{campaignName ?? campaignId}</p>
         </div>
 
         {/* ── Hero KPI strip ── */}

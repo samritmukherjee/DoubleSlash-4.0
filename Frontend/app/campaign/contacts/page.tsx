@@ -160,7 +160,7 @@ export default function ContactsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 campaign-page-enter">
       <div>
         <h1 className="text-3xl  text-white mb-2">Upload Contacts</h1>
         <p className="text-slate-400">Import a CSV file with Name and Phone columns</p>

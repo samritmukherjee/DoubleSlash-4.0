@@ -102,7 +102,7 @@ export default function ChannelsPage() {
   const showCallsSettings = selectedChannels.has('calls')
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 campaign-page-enter">
       <div>
         <h1 className="text-3xl  text-white mb-2">Choose channels</h1>
         <p className="text-slate-400">Select which channels you want to use for this campaign</p>

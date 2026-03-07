@@ -92,7 +92,7 @@ export default function DescriptionPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 campaign-page-enter">
       <div>
         <h1 className="text-3xl  text-white mb-2">Describe your campaign</h1>
         <p className="text-slate-400">Tell us what your campaign is about and what you want to achieve</p>

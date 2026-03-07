@@ -79,6 +79,31 @@ html::-webkit-scrollbar {
   display: none;            
 }
 
+/* ── Campaign step page enter animation ── */
+@keyframes stepPageIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+}
+
+.campaign-page-enter {
+  animation: stepPageIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Custom scrollbar styling - thin, slick, and dark */
 ::-webkit-scrollbar {
   width: 8px;

@@ -99,7 +99,7 @@ export default function DocsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 campaign-page-enter">
       <div>
         <h2 className="text-3xl flex text-white mb-2"> Campaign Documents</h2>
         <p className="text-white/70">

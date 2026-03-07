@@ -78,7 +78,7 @@ export default function TitlePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 campaign-page-enter">
       <div>
         <h1 className="text-3xl  text-white mb-2">Name your campaign</h1>
         <p className="text-slate-400">Give your campaign a clear, memorable name</p>

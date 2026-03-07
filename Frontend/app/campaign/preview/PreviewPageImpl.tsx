@@ -655,7 +655,7 @@ export default function PreviewPageImpl({ campaignId: propCampaignId, fromCreati
   }
 
   return (
-    <div className="space-y-6 flex flex-col h-[60vh]">
+    <div className="space-y-6 flex flex-col h-[60vh] campaign-page-enter">
       <div>
         <h1 className="text-3xl text-white mb-2">Campaign preview</h1>
         <p className="text-slate-400">Review and manage your campaign</p>

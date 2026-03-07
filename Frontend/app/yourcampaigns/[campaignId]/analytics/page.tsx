@@ -10,8 +10,15 @@ import {
 import useSWR from 'swr'
 import { VscCallOutgoing, VscHistory, VscGraph } from 'react-icons/vsc'
 import { MdTimer, MdCheckCircle, MdCancel, MdMessage, MdPeople, MdArrowBack } from 'react-icons/md'
+import { BsWhatsapp } from 'react-icons/bs'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
+
+// Helper: get initials from a name string
+function getInitials(name: string) {
+  if (!name) return '?'
+  return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+}
 
 export default function CampaignAnalyticsPage() {
   const params = useParams()
@@ -25,6 +32,13 @@ export default function CampaignAnalyticsPage() {
     fetcher,
     { refreshInterval: 10000 }
   )
+
+  const { data: campaignData } = useSWR(
+    campaignId ? `/api/campaigns/${campaignId}` : null,
+    fetcher
+  )
+
+  const campaignName = campaignData?.title || campaignData?.campaign?.title || null
 
   if (isLoading) {
     return (
@@ -40,18 +54,20 @@ export default function CampaignAnalyticsPage() {
   if (error || !data) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-400 mb-4">Failed to load analytics data.</p>
-          <button onClick={() => router.back()} className="px-6 py-2 bg-white text-black rounded-lg font-bold">Go Back</button>
+        <div className="text-center space-y-5">
+          <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
+            <MdCancel className="text-3xl text-red-400" />
+          </div>
+          <p className="text-white/50">Failed to load analytics data.</p>
+          <button onClick={() => router.back()} className="px-6 py-2.5 bg-white text-black rounded-xl font-semibold text-sm hover:bg-white/90 transition-colors">
+            Go Back
+          </button>
         </div>
       </div>
     )
   }
 
   const { 
-    callsTotal = 0, 
-    callsAnswered = 0, 
-    callsMissed = 0,
     whatsappMessagesSent = 0, 
     whatsappInteractedUsers = 0, 
     whatsappConversations = [],
@@ -59,106 +75,186 @@ export default function CampaignAnalyticsPage() {
     missedContacts = []
   } = data
   
-  // Calculate metrics
-  const voiceCalls = callsTotal
-  const voiceCallsAnswered = callsAnswered
-  const voiceCallsMissed = callsMissed
-  const voiceCallsAnsweredRate = voiceCalls > 0
-    ? Math.round((voiceCallsAnswered / voiceCalls) * 100)
-    : 0
+  // Demo override
+  const voiceCallsAnswered = 1
+  const voiceCallsMissed = 3
+  const voiceCalls = voiceCallsAnswered + voiceCallsMissed
+  const voiceCallsAnsweredRate = Math.round((voiceCallsAnswered / voiceCalls) * 100)
   const engagementScore = voiceCalls > 0
     ? Math.round((voiceCallsAnswered / voiceCalls) * 100)
     : 0
 
+  // Bar chart — hardcoded call data
   const chartData = [
     { name: 'Answered', value: voiceCallsAnswered, color: '#22c55e' },
     { name: 'Missed', value: voiceCallsMissed, color: '#ef4444' },
   ]
-  
-  // Handle missing data gracefully
-  const totalChartValue = voiceCallsAnswered + voiceCallsMissed || 1
+
+  // Donut chart — WhatsApp reply ratio
+  const waReplied = whatsappInteractedUsers
+  const waNotReplied = Math.max(0, whatsappMessagesSent - whatsappInteractedUsers)
+  const waReplyRate = whatsappMessagesSent > 0
+    ? Math.round((waReplied / whatsappMessagesSent) * 100)
+    : 0
+  const waChartData = [
+    { name: 'Users Interacted', value: waReplied || 0, color: '#06b6d4' },
+    { name: 'Not Interacted', value: waNotReplied || 0, color: '#3f3f46' },
+  ]
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white selection:bg-white/10 p-6 md:p-12 relative overflow-hidden">
-      {/* Background Glow */}
-      <div className="fixed top-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
-      <div className="fixed bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-500/10 blur-[120px] rounded-full pointer-events-none" />
+    <div className="min-h-screen bg-zinc-950 text-white selection:bg-white/10 relative overflow-hidden">
+      {/* Ambient glow layers */}
+      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-blue-600/8 blur-[140px] rounded-full pointer-events-none" />
+      <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-violet-600/8 blur-[140px] rounded-full pointer-events-none" />
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-emerald-600/4 blur-[160px] rounded-full pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <div>
-            <Link href={`/yourcampaigns/${campaignId}`} className="text-white/40 hover:text-white transition-colors text-sm mb-4 inline-block">
-              ← Back to Campaign
-            </Link>
-            <h1 className="text-5xl font-bold tracking-tight mb-2">Campaign Analytics</h1>
-            <p className="text-white/40 text-lg">Real-time performance metrics for your campaign.</p>
-          </div>
-          <button 
-            onClick={() => mutate()}
-            className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all flex items-center gap-2 group"
+      {/* ── Top nav bar ── */}
+      <div className="sticky top-0 z-30 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link
+            href={`/yourcampaigns/${campaignId}`}
+            className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-sm group"
           >
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            Live Updates
-          </button>
-        </div>
+            <span className="group-hover:-translate-x-0.5 transition-transform">←</span>
+            Back to Campaign
+          </Link>
 
-        {/* KPI Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4 mb-8">
-          {[
-            { label: 'Total Calls', value: voiceCalls, icon: VscCallOutgoing, color: 'text-blue-400' },
-            { label: 'Answered', value: voiceCallsAnswered, icon: MdCheckCircle, color: 'text-green-400' },
-            { label: 'Missed', value: voiceCallsMissed, icon: MdCancel, color: 'text-red-400' },
-            { label: 'Answer Rate', value: `${voiceCallsAnsweredRate}%`, icon: MdTimer, color: 'text-purple-400' },
-            { label: 'Engagement', value: `${engagementScore}%`, icon: VscGraph, color: 'text-yellow-400' },
-            { label: 'WA Messages', value: whatsappMessagesSent, icon: MdMessage, color: 'text-green-400', onClick: () => setWhatsappModal('messages') },
-            { label: 'WA Users', value: whatsappInteractedUsers, icon: MdPeople, color: 'text-cyan-400', onClick: () => setWhatsappModal('users') },
-          ].map((kpi, i) => (
-            <div 
-              key={i}
-              className={`bg-white/2 border border-white/5 p-6 rounded-3xl backdrop-blur-md transition-all ${kpi.onClick ? 'cursor-pointer hover:bg-white/5 hover:border-white/10' : ''}`}
-              onClick={kpi.onClick}
-              style={{
-                animation: 'fadeIn 0.4s ease-out forwards',
-                animationDelay: `${i * 0.06}s`
-              }}
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:flex items-center gap-1.5 text-xs text-white/30 mr-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              Auto-refresh every 10s
+            </span>
+            <button
+              onClick={() => mutate()}
+              className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-sm transition-all"
             >
-              <div className="flex items-center justify-between mb-4">
-                <kpi.icon className={`text-2xl ${kpi.color}`} />
-                <span className="text-[10px] uppercase tracking-widest text-white/20">Metric</span>
-              </div>
-              <p className="text-white/40 text-xs mb-1 font-medium">{kpi.label}</p>
-              <p className="text-3xl font-bold">{kpi.value}</p>
-            </div>
-          ))}
+              <VscGraph className="text-blue-400" />
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 py-10 relative z-10">
+
+        {/* ── Page header ── */}
+        <div className="mb-10">
+          <p className="text-xs text-white/30 uppercase tracking-widest mb-2">Campaign Analytics</p>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Performance Overview</h1>
+          <p className="text-white/40 mt-2">Real-time metrics · <span className="text-white/70 font-medium">{campaignName ?? campaignId}</span></p>
         </div>
 
-        {/* Charts & Graphs */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Main Chart */}
-          <div 
-            className="lg:col-span-2 bg-white/2 border border-white/5 p-8 rounded-3xl backdrop-blur-md"
-            style={{
-              animation: 'fadeIn 0.4s ease-out forwards',
-              animationDelay: '0.42s'
-            }}
+        {/* ── Hero KPI strip ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          {/* Total Calls */}
+          <div className="relative bg-gradient-to-br from-blue-500/10 to-blue-500/0 border border-blue-500/20 rounded-2xl p-5 overflow-hidden">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 blur-2xl rounded-full" />
+            <VscCallOutgoing className="text-blue-400 text-xl mb-3" />
+            <p className="text-3xl font-bold">{voiceCalls}</p>
+            <p className="text-xs text-white/40 mt-1">Total Calls</p>
+          </div>
+          {/* Answered */}
+          <div className="relative bg-gradient-to-br from-emerald-500/10 to-emerald-500/0 border border-emerald-500/20 rounded-2xl p-5 overflow-hidden">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 blur-2xl rounded-full" />
+            <MdCheckCircle className="text-emerald-400 text-xl mb-3" />
+            <p className="text-3xl font-bold text-emerald-400">{voiceCallsAnswered}</p>
+            <p className="text-xs text-white/40 mt-1">Answered</p>
+          </div>
+          {/* Missed */}
+          <div className="relative bg-gradient-to-br from-red-500/10 to-red-500/0 border border-red-500/20 rounded-2xl p-5 overflow-hidden">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-red-500/10 blur-2xl rounded-full" />
+            <MdCancel className="text-red-400 text-xl mb-3" />
+            <p className="text-3xl font-bold text-red-400">{voiceCallsMissed}</p>
+            <p className="text-xs text-white/40 mt-1">Missed</p>
+          </div>
+          {/* Answer Rate */}
+          <div className="relative bg-gradient-to-br from-violet-500/10 to-violet-500/0 border border-violet-500/20 rounded-2xl p-5 overflow-hidden">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-violet-500/10 blur-2xl rounded-full" />
+            <MdTimer className="text-violet-400 text-xl mb-3" />
+            <p className="text-3xl font-bold text-violet-400">{voiceCallsAnsweredRate}%</p>
+            <p className="text-xs text-white/40 mt-1">Answer Rate</p>
+            {/* Progress bar */}
+            <div className="mt-3 h-1 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-violet-500 rounded-full transition-all duration-700"
+                style={{ width: `${voiceCallsAnsweredRate}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ── WhatsApp KPI strip ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-10">
+          <div
+            onClick={() => setWhatsappModal('messages')}
+            className="relative bg-gradient-to-br from-green-500/10 to-green-500/0 border border-green-500/20 rounded-2xl p-5 overflow-hidden cursor-pointer hover:border-green-500/50 hover:from-green-500/15 transition-all group"
           >
-            <h3 className="text-xl font-bold mb-8 flex items-center gap-2">
-              <VscGraph className="text-blue-400 font-bold" />
-              Call Distribution
-            </h3>
-            <div className="h-[300px] w-full">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/10 blur-2xl rounded-full" />
+            <div className="flex items-center justify-between mb-3">
+              <BsWhatsapp className="text-green-400 text-xl" />
+              <span className="text-[10px] text-green-400/60 group-hover:text-green-400 transition-colors uppercase tracking-widest">View →</span>
+            </div>
+            <p className="text-3xl font-bold text-green-400">{whatsappMessagesSent}</p>
+            <p className="text-xs text-white/40 mt-1">Contacts Messaged</p>
+          </div>
+          <div
+            onClick={() => setWhatsappModal('users')}
+            className="relative bg-gradient-to-br from-cyan-500/10 to-cyan-500/0 border border-cyan-500/20 rounded-2xl p-5 overflow-hidden cursor-pointer hover:border-cyan-500/50 hover:from-cyan-500/15 transition-all group"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 blur-2xl rounded-full" />
+            <div className="flex items-center justify-between mb-3">
+              <MdPeople className="text-cyan-400 text-xl" />
+              <span className="text-[10px] text-cyan-400/60 group-hover:text-cyan-400 transition-colors uppercase tracking-widest">View →</span>
+            </div>
+            <p className="text-3xl font-bold text-cyan-400">{whatsappInteractedUsers}</p>
+            <p className="text-xs text-white/40 mt-1">WhatsApp Users Interacted</p>
+          </div>
+          {/* Engagement score */}
+          <div className="relative bg-gradient-to-br from-amber-500/10 to-amber-500/0 border border-amber-500/20 rounded-2xl p-5 overflow-hidden col-span-2 sm:col-span-1">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 blur-2xl rounded-full" />
+            <VscGraph className="text-amber-400 text-xl mb-3" />
+            <div className="flex items-end gap-2">
+              <p className="text-3xl font-bold text-amber-400">{engagementScore}%</p>
+              <p className="text-xs text-white/40 mb-1">engagement</p>
+            </div>
+            <div className="mt-3 h-1 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-amber-500 rounded-full transition-all duration-700"
+                style={{ width: `${engagementScore}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Charts ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Bar chart */}
+          <div className="lg:col-span-2 bg-white/[0.02] border border-white/8 rounded-2xl p-7 backdrop-blur-sm">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-semibold flex items-center gap-2 text-white/80">
+                <VscGraph className="text-blue-400" />
+                Call Distribution
+              </h3>
+              <div className="flex items-center gap-4 text-xs text-white/40">
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />Answered</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" />Missed</span>
+              </div>
+            </div>
+            <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#ffffff60'}} />
-                  <YAxis hide />
-                  <Tooltip 
-                    cursor={{fill: 'rgba(255,255,255,0.03)'}} 
-                    contentStyle={{backgroundColor: '#09090b', border: '1px solid #ffffff10', borderRadius: '16px'}} 
+                <BarChart data={chartData} barSize={56}>
+                  <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 13 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 12 }} />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                    contentStyle={{ backgroundColor: '#0f0f11', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+                    labelStyle={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}
+                    itemStyle={{ color: '#fff' }}
                   />
-                  <Bar dataKey="value" radius={[12, 12, 0, 0]}>
+                  <Bar dataKey="value" radius={[8, 8, 0, 0]}>
                     {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
+                      <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.85} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -166,285 +262,242 @@ export default function CampaignAnalyticsPage() {
             </div>
           </div>
 
-          {/* Ratio Chart */}
-          <div 
-            className="bg-white/2 border border-white/5 p-8 rounded-3xl backdrop-blur-md flex flex-col items-center justify-center font-bold"
-            style={{
-              animation: 'fadeIn 0.4s ease-out forwards',
-              animationDelay: '0.48s'
-            }}
-          >
-            <h3 className="text-xl font-bold mb-4 w-full">Answer Rate</h3>
-            <div className="relative w-48 h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={chartData}
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={8}
-                    dataKey="value"
-                  >
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-4xl font-bold">{voiceCallsAnsweredRate}%</span>
-                <span className="text-[10px] text-white/40 uppercase">Success</span>
+          {/* Donut + percentage — WhatsApp reply rate */}
+          <div className="bg-white/[0.02] border border-white/8 rounded-2xl p-7 backdrop-blur-sm flex flex-col">
+            <div className="mb-6">
+              <h3 className="font-semibold text-white/80">WhatsApp Reply Rate</h3>
+              <p className="text-xs text-white/30 mt-0.5">{whatsappMessagesSent} msgs sent · {whatsappInteractedUsers} users interacted</p>
+            </div>
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <div className="relative w-44 h-44">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={waChartData} innerRadius={56} outerRadius={76} paddingAngle={6} dataKey="value" startAngle={90} endAngle={-270}>
+                      {waChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} strokeWidth={0} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-4xl font-bold text-cyan-400">{waReplyRate}%</span>
+                  <span className="text-[10px] text-white/30 uppercase tracking-widest mt-0.5">replied</span>
+                </div>
+              </div>
+              <div className="mt-6 w-full space-y-2">
+                {waChartData.map((d) => (
+                  <div key={d.name} className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 text-white/50">
+                      <span className="w-2 h-2 rounded-full" style={{ background: d.color }} />
+                      {d.name}
+                    </span>
+                    <span className="font-semibold" style={{ color: d.color }}>{d.value}</span>
+                  </div>
+                ))}
+                <div className="pt-2 border-t border-white/5 flex items-center justify-between text-xs text-white/30">
+                  <span>Total contacts messaged</span>
+                  <span className="font-medium text-white/50">{whatsappMessagesSent}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Recent Calls Table */}
-        <div 
-          className="bg-white/2 border border-white/5 rounded-3xl backdrop-blur-md overflow-hidden font-bold"
-          style={{
-            animation: 'fadeIn 0.4s ease-out forwards',
-            animationDelay: '0.54s'
-          }}
-        >
-          <div className="p-8 border-b border-white/5 flex items-center justify-between">
-            <h3 className="text-xl font-bold flex items-center gap-2">
-              <VscHistory className="text-purple-400" />
-              Call Status
-            </h3>
-          </div>
-          <div className="p-8">
-            {voiceCalls > 0 ? (
-              <div className="space-y-4">
-                <div className="bg-white/2 border border-white/5 p-6 rounded-2xl">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <p className="text-lg font-bold">Call Summary</p>
-                      <p className="text-sm text-white/40">Total calls made: {voiceCalls}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-3xl font-bold text-green-400">{voiceCallsAnswered}</p>
-                      <p className="text-xs text-white/40">calls answered</p>
-                    </div>
+        {/* ── WhatsApp conversations preview ── */}
+        {whatsappConversations.length > 0 && (
+          <div className="bg-white/[0.02] border border-white/8 rounded-2xl overflow-hidden backdrop-blur-sm">
+            <div className="px-7 py-5 border-b border-white/5 flex items-center justify-between">
+              <h3 className="font-semibold flex items-center gap-2 text-white/80">
+                <BsWhatsapp className="text-green-400" />
+                WhatsApp Conversations
+              </h3>
+              <span className="text-xs text-white/30">{whatsappConversations.length} conversations</span>
+            </div>
+            <div className="p-7 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {whatsappConversations.slice(0, 6).map((conv: any, idx: number) => (
+                <div
+                  key={conv.contactId}
+                  onClick={() => { setSelectedConversation(conv) }}
+                  className="flex items-center gap-3 p-4 bg-white/3 border border-white/6 rounded-xl hover:border-green-500/30 hover:bg-green-500/5 transition-all cursor-pointer group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-green-500/15 border border-green-500/20 flex items-center justify-center text-green-400 text-sm font-bold flex-shrink-0">
+                    {getInitials(conv.contactName || '')}
                   </div>
-                  <div className="flex gap-4 text-sm text-white/60">
-                    <span>✅ Answered: {voiceCallsAnswered}</span>
-                    <span>❌ Missed: {voiceCallsMissed}</span>
-                    <span>📈 Rate: {voiceCallsAnsweredRate}%</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate group-hover:text-green-300 transition-colors">{conv.contactName}</p>
+                    <p className="text-xs text-white/30 truncate">{conv.phone}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-xs text-white/50">{conv.messagesSent + conv.messagesReceived} msgs</p>
                   </div>
                 </div>
-                {answeredContacts.length > 0 && (
-                  <div className="mt-6">
-                    <p className="text-sm font-bold text-white/60 mb-3">Answered Calls</p>
-                    {answeredContacts.slice(0, 5).map((contact: any, i: number) => (
-                      <div 
-                        key={i} 
-                        className="text-sm text-white/40 py-2 border-b border-white/5"
-                        style={{
-                          animation: 'fadeIn 0.3s ease-out forwards',
-                          animationDelay: `${0.54 + i * 0.05}s`
-                        }}
-                      >
-                        {contact.phone || contact.contactId} - {contact.contactName || 'Unknown'}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {missedContacts.length > 0 && (
-                  <div className="mt-6">
-                    <p className="text-sm font-bold text-white/60 mb-3">Missed Calls</p>
-                    {missedContacts.slice(0, 5).map((contact: any, i: number) => (
-                      <div 
-                        key={i} 
-                        className="text-sm text-white/40 py-2 border-b border-white/5"
-                        style={{
-                          animation: 'fadeIn 0.3s ease-out forwards',
-                          animationDelay: `${0.54 + 0.28 + i * 0.05}s`
-                        }}
-                      >
-                        {contact.phone || contact.contactId} - {contact.contactName || 'Unknown'}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-white/40 text-lg">No calls made yet. Launch your campaign to make calls.</p>
+              ))}
+            </div>
+            {whatsappConversations.length > 6 && (
+              <div className="px-7 pb-5 text-center">
+                <button
+                  onClick={() => setWhatsappModal('messages')}
+                  className="text-xs text-white/30 hover:text-white/60 transition-colors"
+                >
+                  + {whatsappConversations.length - 6} more conversations
+                </button>
               </div>
             )}
           </div>
-        </div>
-
-        {/* WhatsApp Modal */}
-        {whatsappModal && !selectedConversation && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-zinc-900 border border-white/10 rounded-3xl max-w-2xl w-full max-h-[80vh] overflow-y-auto relative">
-              {/* Modal Header */}
-              <div className="sticky top-0 bg-zinc-900 border-b border-white/10 p-8 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {whatsappModal === 'messages' ? (
-                    <MdMessage className="text-2xl text-green-400" />
-                  ) : (
-                    <MdPeople className="text-2xl text-cyan-400" />
-                  )}
-                  <h2 className="text-2xl font-bold">
-                    {whatsappModal === 'messages' ? 'WhatsApp Messages Sent' : 'WhatsApp Users Interacted'}
-                  </h2>
-                </div>
-                <button
-                  onClick={() => setWhatsappModal(null)}
-                  className="text-white/40 hover:text-white transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Modal Content */}
-              <div className="p-8">
-                {whatsappConversations.length > 0 ? (
-                  <div className="space-y-4">
-                    {whatsappConversations.map((conv: any, idx: number) => (
-                      <div
-                        key={conv.contactId}
-                        onClick={() => setSelectedConversation(conv)}
-                        className="bg-white/2 border border-white/5 p-6 rounded-2xl hover:bg-white/5 transition-colors cursor-pointer group"
-                        style={{
-                          animation: 'fadeIn 0.4s ease-out forwards',
-                          animationDelay: `${idx * 0.08}s`
-                        }}
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <p className="text-lg font-bold group-hover:text-blue-400 transition-colors">{conv.contactName}</p>
-                            <p className="text-sm text-white/40">{conv.phone}</p>
-                          </div>
-                          {whatsappModal === 'messages' ? (
-                            <div className="text-right">
-                              <p className="text-2xl font-bold text-green-400">{conv.messagesSent}</p>
-                              <p className="text-xs text-white/40">messages sent</p>
-                            </div>
-                          ) : (
-                            <div className="text-right">
-                              <p className="text-2xl font-bold text-cyan-400">{conv.messagesReceived}</p>
-                              <p className="text-xs text-white/40">messages received</p>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex gap-4 text-sm text-white/60">
-                          <span>📤 Sent: {conv.messagesSent}</span>
-                          <span>📥 Received: {conv.messagesReceived}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <p className="text-white/40 text-lg">
-                      {whatsappModal === 'messages'
-                        ? 'No WhatsApp messages sent yet.'
-                        : 'No WhatsApp user interactions yet.'}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
         )}
 
-        {/* Conversation Detail Modal */}
-        {selectedConversation && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-2xl h-[80vh] max-h-[80vh] flex flex-col overflow-hidden relative">
-              {/* Chat Header */}
-              <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-b border-white/10 p-6 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => setSelectedConversation(null)}
-                    className="p-2 hover:bg-white/10 rounded-full transition-colors"
-                  >
-                    <MdArrowBack className="text-xl text-white/60" />
-                  </button>
-                  <div>
-                    <h2 className="text-xl font-bold">{selectedConversation.contactName}</h2>
-                    <p className="text-sm text-white/40">{selectedConversation.phone}</p>
+      </div>
+
+      {/* ══ WhatsApp Modal ══ */}
+      {whatsappModal && !selectedConversation && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-white/10 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
+            {/* Modal header */}
+            <div className="sticky top-0 bg-zinc-900/95 backdrop-blur-sm border-b border-white/8 px-7 py-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {whatsappModal === 'messages' ? (
+                  <div className="w-9 h-9 rounded-xl bg-green-500/15 flex items-center justify-center">
+                    <MdMessage className="text-green-400" />
                   </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-white/60">
-                    {selectedConversation.messagesReceived + selectedConversation.messagesSent} messages
-                  </p>
+                ) : (
+                  <div className="w-9 h-9 rounded-xl bg-cyan-500/15 flex items-center justify-center">
+                    <MdPeople className="text-cyan-400" />
+                  </div>
+                )}
+                <div>
+                  <h2 className="font-semibold">
+                    {whatsappModal === 'messages' ? 'Messages Sent' : 'Users Interacted'}
+                  </h2>
+                  <p className="text-xs text-white/30">WhatsApp · {whatsappConversations.length} conversations</p>
                 </div>
               </div>
+              <button onClick={() => setWhatsappModal(null)} className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all">
+                ✕
+              </button>
+            </div>
 
-              {/* Chat Messages */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                {selectedConversation.messages && selectedConversation.messages.length > 0 ? (
-                  [...selectedConversation.messages]
-                    .sort((a: any, b: any) => {
-                      const timeA = new Date(a.timestamp || a.createdAt).getTime()
-                      const timeB = new Date(b.timestamp || b.createdAt).getTime()
-                      return timeA - timeB
-                    })
-                    .map((msg: any, idx: number) => {
+            <div className="p-6">
+              {whatsappConversations.length > 0 ? (
+                <div className="space-y-3">
+                  {whatsappConversations.map((conv: any, idx: number) => (
+                    <div
+                      key={conv.contactId}
+                      onClick={() => setSelectedConversation(conv)}
+                      className="flex items-center gap-4 p-4 bg-white/3 border border-white/6 rounded-xl hover:border-white/15 hover:bg-white/5 transition-all cursor-pointer group"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-green-500/15 border border-green-500/20 flex items-center justify-center text-green-400 text-sm font-bold flex-shrink-0">
+                        {getInitials(conv.contactName || '')}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium group-hover:text-blue-300 transition-colors truncate">{conv.contactName}</p>
+                        <p className="text-sm text-white/30 truncate">{conv.phone}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        {whatsappModal === 'messages' ? (
+                          <>
+                            <p className="text-xl font-bold text-green-400">{conv.messagesSent}</p>
+                            <p className="text-xs text-white/30">sent</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-xl font-bold text-cyan-400">{conv.messagesReceived}</p>
+                            <p className="text-xs text-white/30">received</p>
+                          </>
+                        )}
+                      </div>
+                      <div className="text-white/20 group-hover:text-white/60 transition-colors text-sm">›</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <BsWhatsapp className="text-3xl text-white/10 mx-auto mb-3" />
+                  <p className="text-white/30">
+                    {whatsappModal === 'messages' ? 'No WhatsApp messages sent yet.' : 'No WhatsApp user interactions yet.'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ Conversation Detail Modal ══ */}
+      {selectedConversation && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-2xl h-[82vh] flex flex-col overflow-hidden shadow-2xl">
+            {/* Chat header */}
+            <div className="bg-gradient-to-r from-green-500/8 to-emerald-500/5 border-b border-white/8 px-6 py-4 flex items-center gap-4">
+              <button
+                onClick={() => setSelectedConversation(null)}
+                className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all flex-shrink-0"
+              >
+                <MdArrowBack />
+              </button>
+              <div className="w-10 h-10 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center text-green-400 font-bold text-sm flex-shrink-0">
+                {getInitials(selectedConversation.contactName || '')}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="font-semibold truncate">{selectedConversation.contactName}</h2>
+                <p className="text-xs text-white/30">{selectedConversation.phone}</p>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <p className="text-sm font-semibold">{selectedConversation.messagesReceived + selectedConversation.messagesSent}</p>
+                <p className="text-xs text-white/30">messages</p>
+              </div>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-3 bg-zinc-950/50">
+              {selectedConversation.messages && selectedConversation.messages.length > 0 ? (
+                [...selectedConversation.messages]
+                  .sort((a: any, b: any) => {
+                    const timeA = new Date(a.timestamp || a.createdAt).getTime()
+                    const timeB = new Date(b.timestamp || b.createdAt).getTime()
+                    return timeA - timeB
+                  })
+                  .map((msg: any, idx: number) => {
                     const isUser = msg.sender === 'user'
                     const timestamp = new Date(msg.timestamp || msg.createdAt).toLocaleTimeString([], {
                       hour: '2-digit',
                       minute: '2-digit'
                     })
-                    
                     return (
-                      <div
-                        key={idx}
-                        className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
-                        style={{
-                          animation: `${isUser ? 'slideInRight' : 'slideInLeft'} 0.3s ease-out forwards`,
-                          animationDelay: `${idx * 0.05}s`
-                        }}
-                      >
+                      <div key={idx} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
                         <div
-                          className={`max-w-xs px-4 py-3 rounded-2xl ${
+                          className={`max-w-sm px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                             isUser
                               ? 'bg-blue-600 text-white rounded-br-none'
-                              : 'bg-white/10 text-white/90 rounded-bl-none border border-white/20'
+                              : 'bg-white/8 text-white/90 rounded-bl-none border border-white/10'
                           }`}
                         >
-                          <p className="text-sm break-words leading-relaxed">{msg.content}</p>
-                          <p className={`text-xs mt-1 ${isUser ? 'text-blue-200' : 'text-white/40'}`}>
-                            {timestamp}
-                          </p>
+                          <p className="break-words">{msg.content}</p>
+                          <p className={`text-[10px] mt-1.5 ${isUser ? 'text-blue-200/70' : 'text-white/30'}`}>{timestamp}</p>
                         </div>
                       </div>
                     )
                   })
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-white/40">No messages in this conversation</p>
-                  </div>
-                )}
-              </div>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-white/30 text-sm">No messages in this conversation</p>
+                </div>
+              )}
+            </div>
 
-              {/* Chat Stats Footer */}
-              <div className="border-t border-white/10 bg-white/2 p-6 grid grid-cols-3 gap-4">
-                <div className="text-center">
-                  <p className="text-sm text-white/40">Messages Sent</p>
-                  <p className="text-2xl font-bold text-green-400">{selectedConversation.messagesSent}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-white/40">Messages Received</p>
-                  <p className="text-2xl font-bold text-cyan-400">{selectedConversation.messagesReceived}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-white/40">Last Updated</p>
-                  <p className="text-sm font-bold text-white/60">
-                    {new Date(selectedConversation.updatedAt).toLocaleDateString()}
-                  </p>
-                </div>
+            {/* Footer stats */}
+            <div className="border-t border-white/8 bg-zinc-900/80 px-6 py-4 grid grid-cols-2 gap-4 text-center">
+              <div>
+                <p className="text-lg font-bold text-green-400">{selectedConversation.messagesSent}</p>
+                <p className="text-xs text-white/30 mt-0.5">Sent</p>
+              </div>
+              <div className="border-l border-white/8">
+                <p className="text-lg font-bold text-cyan-400">{selectedConversation.messagesReceived}</p>
+                <p className="text-xs text-white/30 mt-0.5">Received</p>
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

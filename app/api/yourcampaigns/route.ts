@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebase/admin";
 import { auth } from "@clerk/nextjs/server";
 
+
+
 export async function GET(request: NextRequest) {
+  
   try {
     const { userId } = await auth();
 

@@ -461,9 +461,9 @@ npm run dev
 | Name | Role |
 |---|---|
 | Sohom Roy | Team Lead |
-| Ankur Bag 
-| Samrit Mukherjee 
-| Ankit Karmakar 
+| Ankur Bag | Member |
+| Samrit Mukherjee | Member |
+| Ankit Karmakar | Member |
 
 ---
 

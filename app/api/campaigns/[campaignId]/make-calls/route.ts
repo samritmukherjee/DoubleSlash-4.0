@@ -1,17 +1,18 @@
-import { auth } from "@clerk/nextjs/server";
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/firebase/admin";
-import { callAgent } from "@/lib/call-agent";
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
+import { db } from '@/lib/firebase/admin';
+import { callAgent } from '@/lib/call-agent';
 
 type Context = { params: Promise<{ campaignId: string }> };
 
 /**
  * POST /api/campaigns/[campaignId]/make-calls
- * 
- * Makes Twilio calls to all contacts in the campaign.
- * Requires:
- * - Campaign to have channelContent.calls.transcript (the script to say)
- * - Contacts with phone numbers
+ *
+ * Initiates AI-powered outbound calls to all contacts in the campaign.
+ * Each call:
+ *  1. Creates a LiveKit room
+ *  2. Connects the customer via Twilio SIP
+ *  3. Spawns an AI agent that reads campaign context from Firestore
  */
 export async function POST(
   request: NextRequest,
@@ -21,134 +22,100 @@ export async function POST(
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { campaignId } = await params;
 
     if (!campaignId) {
-      return NextResponse.json(
-        { error: "Missing campaignId" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing campaignId' }, { status: 400 });
     }
 
     const ref = db
-      .collection("users")
+      .collection('users')
       .doc(userId)
-      .collection("campaigns")
+      .collection('campaigns')
       .doc(campaignId);
 
     const snap = await ref.get();
     if (!snap.exists) {
-      return NextResponse.json(
-        { error: "Campaign not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
     }
 
     const campaignData = snap.data() as any;
 
-    console.log('====== MAKE CALLS DEBUG START ======');
+    console.log('====== MAKE CALLS (AI AGENT) DEBUG START ======');
     console.log('Campaign ID:', campaignId);
-    console.log('All campaign data keys:', Object.keys(campaignData));
-    
+
     // Check if calls channel is enabled
     const callsEnabled = campaignData.channels?.calls?.enabled;
-    console.log('Calls enabled:', callsEnabled);
-
     if (!callsEnabled) {
       console.log('❌ Calls channel is disabled');
       return NextResponse.json(
-        { error: "Calls channel is not enabled for this campaign" },
-        { status: 400 }
-      );
-    }
-
-    // Get call transcript - handle FLAT key structure from Firestore merge
-    let callScript = '';
-    
-    // First try nested structure
-    callScript = campaignData?.channelContent?.calls?.transcript;
-    console.log('Attempt 1 (nested):', callScript ? 'FOUND' : 'NOT FOUND');
-    
-    // If not found, try flat key structure (from Firestore merge with dot notation)
-    if (!callScript) {
-      callScript = campaignData['channelContent.calls.transcript'];
-      console.log('Attempt 2 (flat key):', callScript ? 'FOUND' : 'NOT FOUND');
-    }
-
-    console.log('Final call script:', callScript ? `${callScript.substring(0, 100)}...` : 'EMPTY');
-    console.log('====== MAKE CALLS DEBUG END ======');
-
-    if (!callScript || callScript.trim() === '') {
-      console.error('❌ No call script found');
-      return NextResponse.json(
-        { error: "Call transcript not found in campaign data. Please generate one in the campaign editor first." },
+        { error: 'Calls channel is not enabled for this campaign' },
         { status: 400 }
       );
     }
 
     // Get contacts from campaign data
     const contacts = campaignData.contacts || campaignData.contactsSummary?.items || [];
-    
+
     if (contacts.length === 0) {
-      return NextResponse.json(
-        { error: "No contacts found to call" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'No contacts found to call' }, { status: 400 });
     }
 
     // Extract phone numbers
-    const phoneNumbers = contacts
-      .map((contact: any) => contact.phone)
-      .filter((phone: any) => phone && phone.trim());
+    const phoneNumbers: string[] = contacts
+      .map((c: any) => c.phone)
+      .filter((p: any): p is string => !!p && typeof p === 'string' && p.trim().length > 0);
 
     if (phoneNumbers.length === 0) {
       return NextResponse.json(
-        { error: "No valid phone numbers found in contacts" },
+        { error: 'No valid phone numbers found in contacts' },
         { status: 400 }
       );
     }
 
-    console.log(`📞 Making calls for campaign ${campaignId}`);
-    console.log(`   Contacts: ${contacts.length}`);
-    console.log(`   Phone numbers to call: ${phoneNumbers.length}`);
-    console.log(`   Call script: ${callScript.substring(0, 100)}...`);
+    console.log(`📞 Launching AI agent calls for campaign ${campaignId}`);
+    console.log(`   Contacts: ${contacts.length}, Valid phones: ${phoneNumbers.length}`);
+    console.log('====== MAKE CALLS DEBUG END ======');
 
-    // Make the calls
-    const callResult = await callAgent({
-      phoneNumbers,
-      script: callScript
-    });
+    // Determine the public base URL for webhooks
+    const baseUrl =
+      process.env.VOICE_BASE_URL ||
+      process.env.NEXTAUTH_URL ||
+      'http://localhost:3000';
 
-    // Update campaign status to track calls
-    await ref.update({
-      callsInitiated: true,
-      callsInitiatedAt: new Date(),
-      callResults: {
-        totalAttempted: callResult.totalCalls,
-        successfulCalls: callResult.successfulCalls,
-        failedCalls: callResult.failedCalls,
-        errors: callResult.errors
-      }
-    });
+    // Kick off calls (non-blocking — respond immediately for large contact lists)
+    callAgent({ phoneNumbers, campaignId, userId, baseUrl })
+      .then(async (callResult) => {
+        // Update campaign with call results
+        await ref.update({
+          callsInitiated: true,
+          callsInitiatedAt: new Date(),
+          callResults: {
+            totalAttempted: callResult.totalCalls,
+            successfulCalls: callResult.successfulCalls,
+            failedCalls: callResult.failedCalls,
+            errors: callResult.errors,
+          },
+        });
+        console.log(`✅ Campaign ${campaignId} calls complete — ${callResult.successfulCalls}/${callResult.totalCalls} succeeded`);
+      })
+      .catch((err) => {
+        console.error(`❌ callAgent failed for campaign ${campaignId}:`, err.message);
+      });
 
     return NextResponse.json({
       success: true,
       campaignId,
-      callResults: callResult
+      message: `AI calling agent initiated for ${phoneNumbers.length} contact(s). Calls are being placed now.`,
+      totalContacts: phoneNumbers.length,
     });
-
   } catch (error) {
-    console.error("Call execution error:", error);
+    console.error('Make-calls route error:', error);
     return NextResponse.json(
-      { 
-        error: error instanceof Error ? error.message : "Internal server error"
-      },
+      { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     );
   }

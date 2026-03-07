@@ -128,8 +128,8 @@ export default function CampaignDetailPage() {
         throw new Error(data.error || 'Failed to make calls')
       }
 
-      console.log('✅ Calls initiated:', data.callResults)
-      setCallSuccess(`📞 Calls initiated! Successful: ${data.callResults.successfulCalls}/${data.callResults.totalCalls}`)
+      console.log('✅ Calls initiated:', data)
+      setCallSuccess(`📞 Calls initiated successfully for ${data.totalContacts} contact(s)! `)
     } catch (err) {
       console.error('Error making calls:', err)
       setError(err instanceof Error ? err.message : 'Failed to make calls')
@@ -213,7 +213,7 @@ export default function CampaignDetailPage() {
               
               <div className="flex items-center gap-3">
                 <Link
-                  href={`/analytics/${loadedCampaign.id}`}
+                  href={`/yourcampaigns/${loadedCampaign.id}/analytics`}
                   className="px-5 py-2.5 rounded-lg border border-white/20 text-white hover:border-white/40 hover:bg-white/5 transition-all duration-300 text-sm font-medium flex items-center gap-2"
                 >
                   <IoMdAnalytics className="w-5 h-5" style={{ color: '#f6f4f0' }} />

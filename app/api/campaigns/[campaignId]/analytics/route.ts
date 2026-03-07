@@ -107,94 +107,75 @@ export async function GET(
     const callsChannelEnabled = campaign?.channels?.calls?.enabled || campaign?.channels?.voice?.enabled || false
     console.log(`📞 Calls channel enabled: ${callsChannelEnabled}`)
 
-    // Fetch real call data from Twilio
-    let voiceCalls = 0
-    let voiceCallsAnswered = 0
+    // --- VAPI CALL ANALYTICS ---
+    let vapiCallsCount = 0
+    let vapiAnsweredCount = 0
+    let vapiTotalDuration = 0
+    let vapiCallHistory: any[] = []
 
-    if (callsChannelEnabled) {
+    try {
+      const callsRef = db_ref
+        .collection('users')
+        .doc(userId)
+        .collection('campaigns')
+        .doc(campaignId)
+        .collection('calls')
+
+      const callsSnapshot = await callsRef.orderBy('timestamp', 'desc').get()
+      vapiCallsCount = callsSnapshot.size
+      
+      callsSnapshot.docs.forEach(doc => {
+        const call = doc.data()
+        vapiTotalDuration += (call.duration || 0)
+        if ((call.duration || 0) > 0 || call.status === 'completed') {
+          vapiAnsweredCount += 1
+        }
+        
+        // Push to history for the table
+        if (vapiCallHistory.length < 10) {
+          vapiCallHistory.push({
+            id: doc.id,
+            ...call
+          })
+        }
+      })
+      
+      console.log(`📡 Vapi Analytics: ${vapiCallsCount} calls, ${vapiAnsweredCount} answered`)
+    } catch (err) {
+      console.error('Error fetching Vapi calls:', err)
+    }
+
+    // --- TWILIO FALLBACK (LEGACY) ---
+    // Fetch real call data from Twilio (Keep as fallback or for mixed campaigns)
+    let voiceCalls = vapiCallsCount
+    let voiceCallsAnswered = vapiAnsweredCount
+    let avgDuration = vapiCallsCount > 0 ? Math.round(vapiTotalDuration / vapiCallsCount) : 0
+
+    if (callsChannelEnabled && vapiCallsCount === 0) {
       try {
-        // Get campaign contact phone numbers
         const campaignPhones = contactsFromCampaign
           .map((c: any) => c.phone)
           .filter(Boolean)
         
-        console.log(`📱 Searching Twilio for calls to: ${campaignPhones.join(', ')}`)
-
-        // Fetch calls from last 24 hours
         const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
-        
         const recentCalls = await twilioClient.calls.list({
           limit: 100,
           startTimeAfter: oneDayAgo,
         })
 
-        console.log(`📞 Found ${recentCalls.length} calls in last 24h`)
-
-        // Filter calls to campaign phone numbers
         const campaignCalls = recentCalls.filter((call: any) => {
-          // Normalize both numbers - remove all non-digits
           const callToDigits = call.to?.replace(/\D/g, '')
-          
-          // Check if any campaign phone matches this call
-          const isMatch = campaignPhones.some((phone: any) => {
+          return campaignPhones.some((phone: any) => {
             const phoneDigits = phone.replace(/\D/g, '')
-            
-            // Match if either:
-            // 1. Exact match after removing non-digits
-            // 2. Campaign phone is last 10 digits of call (e.g., 9883479073 matches +919883479073)
-            if (phoneDigits === callToDigits) return true
-            if (callToDigits?.endsWith(phoneDigits)) return true
-            
-            return false
+            return phoneDigits === callToDigits || callToDigits?.endsWith(phoneDigits)
           })
-
-          if (isMatch) {
-            console.log(`   ✓ Call to ${call.to} (${call.status}) - MATCHED campaign phone`)
-          }
-
-          return isMatch
         })
 
-        // Count initiated calls and answered calls
         voiceCalls = campaignCalls.length
-        voiceCallsAnswered = campaignCalls.filter((call: any) => 
-          call.status === 'completed'
-        ).length
-
-        console.log(`Twilio calls to campaign phones: ${voiceCalls} initiated, ${voiceCallsAnswered} answered`)
-
-        // Cache in Firebase for persistence
-        await db_ref
-          .collection('users')
-          .doc(userId)
-          .collection('campaigns')
-          .doc(campaignId)
-          .update({
-            callStats: {
-              initiated: voiceCalls,
-              answered: voiceCallsAnswered,
-              updatedAt: new Date().toISOString(),
-            },
-          })
-
-        console.log(`✅ Call stats cached in Firebase`)
+        voiceCallsAnswered = campaignCalls.filter((call: any) => call.status === 'completed').length
       } catch (error) {
-        console.error('❌ Error fetching Twilio calls:', error)
-        
-        // Try to use cached data from Firebase
-        try {
-          const cachedStats = campaign?.callStats
-          if (cachedStats) {
-            voiceCalls = cachedStats.initiated
-            voiceCallsAnswered = cachedStats.answered
-            console.log(`⚠️ Using cached call stats: ${voiceCalls} initiated, ${voiceCallsAnswered} answered`)
-          }
-        } catch (cacheError) {
-          console.error('Could not load cached stats:', cacheError)
-        }
+        console.error('❌ Error fetching Twilio fallback calls:', error)
       }
-    } else {
-      console.log('⚠️ Call channel not enabled for this campaign, skipping call metrics')
     }
 
     // Count text interactions (incoming messages)
@@ -303,7 +284,7 @@ export async function GET(
         // Text metrics
         textInteractions,
         aiResponsesCount: aiResponses,
-        avgResponseTimeMs: 0,
+        avgResponseTimeMs: avgDuration * 1000, // Convert to ms for the UI
         
         // Channel configuration
         channels: {
@@ -325,8 +306,10 @@ export async function GET(
           contactsReplied,
           voiceCallsAnswered,
           totalContacts,
+          vapiCallsCount
         }
       },
+      callHistory: vapiCallHistory, // New field for the analytics table
       conversationSummary: contactsSnapshot.docs.slice(0, 10).map((contactDoc: any) => {
         const contactId = contactDoc.id
         const contactMessages = messages.filter((msg: any) => msg.contactId === contactId)

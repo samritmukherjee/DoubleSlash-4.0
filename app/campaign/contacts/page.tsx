@@ -9,6 +9,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCampaign } from '../CampaignContext'
+import { RiContactsBook3Line } from "react-icons/ri";
 
 interface Contact {
   name: string
@@ -161,7 +162,7 @@ export default function ContactsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl  text-white mb-2">Upload contacts</h1>
+        <h1 className="text-3xl  text-white mb-2">Upload Contacts</h1>
         <p className="text-slate-400">Import a CSV file with Name and Phone columns</p>
       </div>
 
@@ -178,7 +179,8 @@ export default function ContactsPage() {
         }`}
       >
         <div className="space-y-3">
-          <div className="text-4xl">📊</div>
+          <div className="text-5xl flex justify-center"><RiContactsBook3Line />
+</div>
           <div>
             <p className="text-white">Drag Excel file or CSV file here or</p>
             <label className="text-white/80 cursor-pointer hover:text-white">

@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/firebase/admin'
 import { uploadToCloudinary } from '@/lib/cloudinary'
 import { extractPdfText } from '@/lib/pdf-extraction'
+import { upsertDocumentChunks } from '@/lib/vector-store' // Added
 
 type Ctx = { params: Promise<{ campaignId: string }> }
 
@@ -57,8 +58,7 @@ export async function POST(request: NextRequest, { params }: Ctx) {
       extractedText = await extractPdfText(buffer)
     } catch (extractError) {
       console.warn('⚠️ PDF text extraction warning:', extractError)
-      // Don't fail completely, just note that extraction failed
-      extractedText = '[PDF text extraction failed - file may be encrypted or corrupted]'
+      extractedText = '[PDF text extraction failed]'
     }
 
     // Prepare document data
@@ -72,11 +72,16 @@ export async function POST(request: NextRequest, { params }: Ctx) {
 
     // Update campaign with document
     await ref.update({
-      documents: [documentData], // Store as array for potential multiple docs
+      documents: [documentData],
       updatedAt: new Date().toISOString(),
     })
 
-    console.log('✅ Document uploaded and saved successfully')
+    // Step 2 & 3: Chunk and Embed for RAG
+    if (extractedText && extractedText !== '[PDF text extraction failed]') {
+      await upsertDocumentChunks(campaignId, userId, uploadedFile.name, extractedText)
+    }
+
+    console.log('✅ Document uploaded, extracted, and embedded successfully')
 
     return NextResponse.json({
       success: true,

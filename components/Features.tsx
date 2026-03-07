@@ -87,22 +87,22 @@ const Features = () => {
     <div className="w-full bg-black">
       <FeatureSection
         label="Steps"
-        title="Launch campaigns in a few simple steps."
-        description="Create your campaign, choose communication channels, upload assets and contacts, and review everything in a live preview before going live."
+        title="Launch Campaigns in Minutes"
+        description="Create and deploy digital campaigns through a streamlined workflow. Configure campaign parameters, select communication channels, upload contact lists and assets, and validate everything through a live preview before launch."
         videoSrc="https://res.cloudinary.com/dlms9ihiw/video/upload/v1769063841/steps_b27bst.mp4"
       />
 
       <FeatureSection
-        label="AI Conversations"
+        label="AI‑Driven Conversations"
         title="Let users ask, AI responds instantly."
-        description="Engage customers on WhatsApp with real‑time, AI‑powered conversations that answer questions and drive action."
+        description="Enable real‑time customer engagement through AI‑powered messaging. OutreachX uses intelligent conversation agents to respond instantly on WhatsApp, answer queries, and guide users toward meaningful actions."
         videoSrc="https://res.cloudinary.com/dlms9ihiw/video/upload/v1769075693/whatsapp_chat_ppwgfi.mp4"
       />
 
       <FeatureSection
         label="Analytics"
-        title="Track performance in real time."
-        description="Measure deliveries, responses, calls, and engagement with live analytics designed to help you optimize every campaign."
+        title="Real‑Time Campaign Analytics"
+        description="Monitor campaign performance with live analytics. Track message delivery, response rates, call activity, and engagement metrics through a unified dashboard designed to continuously optimize campaign outcomes."
         videoSrc="https://res.cloudinary.com/dlms9ihiw/video/upload/v1769075693/analytics_page_gxdsh7.mp4"
       />
     </div>

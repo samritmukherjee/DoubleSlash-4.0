@@ -43,13 +43,14 @@ export async function GET(request: NextRequest) {
           calls: data.audioPublicIds?.calls || ''
         };
 
-        return {
-          id: doc.id,
-          ...data,
-          channelContent,
-          audioUrls,
-          audioPublicIds,
-        };
+          return {
+            id: doc.id,
+            ...data,
+            channelContent,
+            audioUrls,
+            audioPublicIds,
+            vapiStats: data.vapiStats || null,
+          };
       })
       .reverse();
 

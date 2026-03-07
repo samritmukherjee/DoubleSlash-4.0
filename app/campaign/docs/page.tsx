@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCampaign } from '../CampaignContext'
+import { TbFileUploadFilled } from "react-icons/tb";
 
 interface Document {
   url: string
@@ -100,7 +101,7 @@ export default function DocsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold text-white mb-2">📄 Campaign Documents</h2>
+        <h2 className="text-3xl flex text-white mb-2"> Campaign Documents</h2>
         <p className="text-white/70">
           Upload PDF documents that will help the AI understand context and answer questions better in the inbox
         </p>
@@ -138,9 +139,10 @@ export default function DocsPage() {
           className="hidden"
         />
         <label htmlFor="pdf-upload" className="cursor-pointer block">
-          <div className="text-4xl mb-3">📤</div>
-          <p className="text-white font-semibold mb-1">Drag and drop your PDF here</p>
-          <p className="text-white/60 text-sm">or click to browse</p>
+          <div className="text-4xl mb-3 flex justify-center"><TbFileUploadFilled />
+</div>
+          <p className="text-white  mb-1 flex justify-center">Drag and drop your PDF here</p>
+          <p className="text-white/60 text-sm flex justify-center">or click to browse</p>
           {isUploading && <p className="text-blue-400 text-sm mt-3">Uploading...</p>}
         </label>
       </div>
@@ -152,7 +154,8 @@ export default function DocsPage() {
             {documents.map((doc, idx) => (
               <div key={idx} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
                 <div className="flex items-center gap-3 flex-1">
-                  <span className="text-2xl">📄</span>
+                  <span className="text-2xl"><TbFileUploadFilled />
+</span>
                   <div>
                     <p className="text-white font-medium">{doc.name}</p>
                     <p className="text-xs text-white/60">{doc.extractedText.length} characters extracted</p>

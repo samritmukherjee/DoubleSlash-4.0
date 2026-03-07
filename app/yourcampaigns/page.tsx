@@ -282,6 +282,20 @@ export default function YourCampaignsPage() {
                             return campaign.aiDescription || desc || 'No description provided'
                           })()}
                         </p>
+
+                        {/* Quick Stats Overlay */}
+                        {(campaign as any).vapiStats && (
+                          <div className="mt-4 flex gap-4">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] text-white/30 uppercase tracking-tighter">Total Calls</span>
+                              <span className="text-sm font-bold text-blue-400">{(campaign as any).vapiStats.totalCalls}</span>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-[10px] text-white/30 uppercase tracking-tighter">Answered</span>
+                              <span className="text-sm font-bold text-green-400">{(campaign as any).vapiStats.answeredCalls}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Footer Info - Minimal */}

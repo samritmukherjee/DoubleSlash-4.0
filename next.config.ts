@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   experimental: {
     proxyClientMaxBodySize: "50mb",
   },
-  serverExternalPackages: ['pdf-parse'],
+  serverExternalPackages: ['pdf-parse', 'ws'],
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,

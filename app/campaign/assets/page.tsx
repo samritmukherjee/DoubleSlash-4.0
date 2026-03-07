@@ -17,6 +17,7 @@ import { useCampaign } from '../CampaignContext'
 import { RiAiGenerate2 } from "react-icons/ri";
 import { RiAiGenerate } from "react-icons/ri";
 import { MdOutlineDriveFolderUpload } from "react-icons/md";
+import { IoCloudUpload } from "react-icons/io5";
 
 interface GeneratedImagePreview {
   dataUrl: string
@@ -352,7 +353,7 @@ export default function AssetsPage() {
             }`}
           >
             <div className="space-y-3">
-              <div className="text-4xl">📁</div>
+              <div className="text-4xl text-white flex justify-center"> <IoCloudUpload/></div>
               <div>
                 <p className="text-white ">Drag files here or</p>
                 <label className="text-white/80 cursor-pointer hover:text-white">

@@ -10,6 +10,7 @@ export default function TitlePage() {
   const { campaign, updateCampaign } = useCampaign()
   const [title, setTitle] = useState(campaign.title)
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -24,13 +25,49 @@ export default function TitlePage() {
     }
   }
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!title.trim()) {
       setError('Campaign title is required')
       return
     }
-    updateCampaign({ title: title.trim() })
-    router.push('/campaign/description')
+
+    try {
+      setError('')
+      setIsLoading(true)
+
+      const trimmedTitle = title.trim()
+      updateCampaign({ title: trimmedTitle })
+
+      // Create or patch draft campaign
+      console.log('📝 Creating draft campaign with title...')
+      const res = await fetch('/api/campaigns/draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campaignId: campaign.campaignId,
+          title: trimmedTitle,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to create campaign')
+      }
+
+      const { campaignId } = await res.json()
+      console.log('✅ Draft created:', campaignId)
+
+      // Store campaignId in context
+      updateCampaign({ campaignId })
+
+      // Navigate to description
+      router.push(`/campaign/description?id=${campaignId}`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create campaign')
+      console.error('Error creating campaign:', err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -58,18 +95,24 @@ export default function TitlePage() {
               autoResizeTextarea()
             }}
             onKeyDown={handleKeyDown}
-            placeholder="e.g., Summer Sale 2025"
+            placeholder="e.g., Summer Sale 2026"
             rows={1}
+            disabled={isLoading}
             className="flex w-full rounded-md border-none bg-transparent px-3 py-2.5 text-base text-gray-100 placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 resize-none max-h-64 font-helvetica"
           />
           
           <div className="flex items-end justify-end gap-3 mt-4 pt-4 border-t border-white/5">
             <button
               onClick={handleSend}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-white hover:bg-white/90 text-[#1F2023] transition shadow-[0_0_15px_rgba(255,255,255,0.2)] cursor-pointer"
+              disabled={isLoading}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white hover:bg-white/90 text-[#1F2023] transition shadow-[0_0_15px_rgba(255,255,255,0.2)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               title="Send (Enter)"
             >
-              <ArrowUp className="w-5 h-5" />
+              {isLoading ? (
+                <span className="animate-spin">⟳</span>
+              ) : (
+                <ArrowUp className="w-5 h-5" />
+              )}
             </button>
           </div>
         </div>

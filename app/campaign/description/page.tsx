@@ -10,6 +10,7 @@ export default function DescriptionPage() {
   const { campaign, updateCampaign } = useCampaign()
   const [description, setDescription] = useState(campaign.description)
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -24,13 +25,63 @@ export default function DescriptionPage() {
     }
   }
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!description.trim()) {
       setError('Campaign description is required')
       return
     }
-    updateCampaign({ description: description.trim() })
-    router.push('/campaign/channels')
+
+    try {
+      setError('')
+      setIsLoading(true)
+
+      const trimmedDesc = description.trim()
+      updateCampaign({ description: trimmedDesc })
+
+      // Patch draft document if campaignId exists
+      if (campaign.campaignId) {
+        console.log('📝 Updating draft campaign with description...')
+
+        // Build payload with only defined values
+        const payload: any = {
+          campaignId: campaign.campaignId,
+          title: campaign.title,
+          description: {
+            original: trimmedDesc,
+          },
+        }
+
+        // Only add wordLimit if it's defined
+        if (campaign.channels?.text?.wordLimit !== undefined) {
+          payload.wordLimit = campaign.channels.text.wordLimit
+        }
+
+        // Only add toneOfVoice if it's defined
+        if (campaign.toneOfVoice !== undefined) {
+          payload.toneOfVoice = campaign.toneOfVoice
+        }
+
+        const res = await fetch('/api/campaigns/draft', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+
+        if (!res.ok) {
+          const data = await res.json()
+          throw new Error(data.error || 'Failed to update campaign')
+        }
+
+        console.log('✅ Draft updated with description')
+      }
+
+      router.push('/campaign/channels')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update campaign')
+      console.error('Error updating campaign:', err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -66,16 +117,22 @@ export default function DescriptionPage() {
           <div className="flex items-end justify-between gap-3 mt-4 pt-4 border-t border-white/5">
             <button
               onClick={() => router.push('/campaign/title')}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-gray-100 bg-white/10 hover:bg-white/20 transition cursor-pointer"
+              className="px-4 py-2 rounded-lg text-sm font-medium text-gray-100 bg-white/10 hover:bg-white/20 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
             >
               Back
             </button>
             <button
               onClick={handleSend}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-white hover:bg-white/90 text-[#1F2023] transition shadow-[0_0_15px_rgba(255,255,255,0.2)] cursor-pointer"
+              disabled={isLoading}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white hover:bg-white/90 text-[#1F2023] transition shadow-[0_0_15px_rgba(255,255,255,0.2)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               title="Send (Enter)"
             >
-              <ArrowUp className="w-5 h-5" />
+              {isLoading ? (
+                <span className="animate-spin">⟳</span>
+              ) : (
+                <ArrowUp className="w-5 h-5" />
+              )}
             </button>
           </div>
         </div>

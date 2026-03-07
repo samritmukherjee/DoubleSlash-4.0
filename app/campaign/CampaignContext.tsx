@@ -2,15 +2,31 @@
 
 import React, { createContext, useContext, useState } from 'react'
 
+export interface ChannelConfig {
+  text?: { enabled: boolean; wordLimit?: number }
+  voice?: { enabled: boolean; maxDurationSeconds?: number }
+  calls?: { enabled: boolean; maxCallDurationSeconds?: number }
+  whatsapp?: { enabled: boolean; wordLimit?: number }
+}
+
+export interface ChannelContent {
+  voice?: { transcript: string }
+  calls?: { script: string }
+}
+
 export interface CampaignData {
+  campaignId?: string
   title: string
   description: string
-  channels: ('Text' | 'Voice' | 'Calls')[]
+  channels: ChannelConfig
   toneOfVoice?: 'friendly' | 'professional' | 'energetic' | 'formal' | 'casual'
-  wordLimit?: number // in words
-  voiceDuration?: number // in minutes (1, 2, or 3)
   assets: File[]
   contacts: { name: string; phone: string }[]
+  contactsFile?: File | null
+  documents?: { url: string; publicId: string; name: string; extractedText: string; uploadedAt: string }[]
+  aiDescription?: string
+  previewText?: string
+  channelContent?: ChannelContent
 }
 
 interface CampaignContextType {
@@ -22,14 +38,18 @@ const CampaignContext = createContext<CampaignContextType | undefined>(undefined
 
 export const CampaignProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [campaign, setCampaign] = useState<CampaignData>({
+    campaignId: undefined,
     title: '',
     description: '',
-    channels: [],
+    channels: {},
     toneOfVoice: undefined,
-    wordLimit: undefined,
-    voiceDuration: 1,
     assets: [],
     contacts: [],
+    contactsFile: null,
+    documents: [],
+    aiDescription: undefined,
+    previewText: undefined,
+    channelContent: {},
   })
 
   const updateCampaign = (updates: Partial<CampaignData>) => {
@@ -42,7 +62,6 @@ export const CampaignProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     </CampaignContext.Provider>
   )
 }
-
 export const useCampaign = () => {
   const context = useContext(CampaignContext)
   if (!context) {

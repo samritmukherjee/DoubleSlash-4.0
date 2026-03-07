@@ -45,9 +45,9 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   useEffect(() => {
     if (user) {
       // Check Clerk metadata first for the source of truth
-      const clerkOnboarded = (user.publicMetadata as any)?.onboardingCompleted ?? false
+      const onboardingComplete = (user.unsafeMetadata as any)?.onboardingComplete ?? false
       
-      if (clerkOnboarded) {
+      if (onboardingComplete) {
         // If completed in Clerk, load the saved data from localStorage
         const savedData = localStorage.getItem(`onboarding_${user.id}`)
         if (savedData) {
@@ -72,7 +72,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
     }
     setIsLoading(false)
-  }, [user])
+  }, [user?.id])
 
   const updateOnboarding = (updates: Partial<OnboardingData>) => {
     setOnboarding((prev) => ({ ...prev, ...updates }))
@@ -80,23 +80,37 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const saveOnboarding = async () => {
     if (user) {
-      // Save to localStorage
-      localStorage.setItem(`onboarding_${user.id}`, JSON.stringify(onboarding))
-
-      // Update Clerk metadata to mark onboarding as completed
       try {
+        // Save to API route (which will use Admin SDK to write to Firestore)
+        const response = await fetch('/api/onboarding', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(onboarding),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to save onboarding')
+        }
+
+        // Save to localStorage as backup
+        localStorage.setItem(`onboarding_${user.id}`, JSON.stringify(onboarding))
+
+        // Update Clerk metadata to mark onboarding as completed
         await user.update({
           unsafeMetadata: {
-            onboardingCompleted: true,
-            onboardingData: onboarding,
-            onboardingCompletedAt: new Date().toISOString(),
+            ...(user.unsafeMetadata || {}),
+            onboardingComplete: true,
           },
         })
+        // Reload user to get updated metadata
+        await user.reload()
         setIsOnboardingCompleted(true)
       } catch (error) {
-        console.error('Failed to save onboarding to Clerk:', error)
-        // Even if Clerk update fails, mark as completed locally
-        setIsOnboardingCompleted(true)
+        console.error('Failed to save onboarding:', error)
+        throw error
       }
     }
   }

@@ -1,3 +1,9 @@
+/**
+ * Campaign Contacts Upload Page
+ * 
+ * Files are uploaded immediately to the draft campaign via /api/campaigns/[campaignId]/contacts.
+ */
+
 'use client'
 
 import { useState } from 'react'
@@ -12,37 +18,12 @@ interface Contact {
 export default function ContactsPage() {
   const router = useRouter()
   const { campaign, updateCampaign } = useCampaign()
-  const [contacts, setContacts] = useState<Contact[]>(campaign.contacts)
   const [dragActive, setDragActive] = useState(false)
   const [error, setError] = useState('')
-
-  const parseCSV = (text: string): Contact[] => {
-    const lines = text.trim().split('\n')
-    const result: Contact[] = []
-
-    lines.forEach((line, idx) => {
-      if (idx === 0) return // Skip header
-      const [name, phone] = line.split(',').map((s) => s.trim())
-      if (name && phone) {
-        result.push({ name, phone })
-      }
-    })
-
-    return result
-  }
-
-  const parseExcel = (arrayBuffer: ArrayBuffer): Contact[] => {
-    // Simple Excel parsing - looking for Name and Phone columns
-    const result: Contact[] = []
-    try {
-      // For now, we'll treat Excel similar to CSV by converting to string
-      const view = new Uint8Array(arrayBuffer)
-      const text = String.fromCharCode.apply(null, Array.from(view))
-      return parseCSV(text)
-    } catch {
-      return []
-    }
-  }
+  const [contactsFile, setContactsFile] = useState<File | null>(campaign.contactsFile || null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [extractedContacts, setExtractedContacts] = useState<Contact[]>([])
+  const [contactCount, setContactCount] = useState(0)
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
@@ -50,7 +31,77 @@ export default function ContactsPage() {
     setDragActive(e.type === 'dragenter' || e.type === 'dragover')
   }
 
-  const handleDrop = (e: React.DragEvent) => {
+  const uploadContacts = async (fileToUpload: File) => {
+    if (!campaign.campaignId) {
+      setError('Campaign ID not found. Please go back and try again.')
+      return false
+    }
+
+    try {
+      setError('')
+      setIsUploading(true)
+
+      const formData = new FormData()
+      formData.append('contactsFile', fileToUpload)
+
+      console.log('📞 Uploading contacts file to draft campaign...')
+      const res = await fetch(`/api/campaigns/${campaign.campaignId}/contacts`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to upload contacts')
+      }
+
+      const data = await res.json()
+      console.log('✅ Contacts extracted and uploaded successfully', data)
+      
+      // Update the local state with the uploaded filename
+      if (data.fileName) {
+        setContactsFile(new File([fileToUpload], data.fileName, { type: fileToUpload.type }))
+      }
+
+      // Store extracted contacts to display them
+      if (data.contacts && Array.isArray(data.contacts)) {
+        setExtractedContacts(data.contacts)
+        setContactCount(data.count || data.contacts.length)
+      }
+
+      // Save the extracted contacts to the draft
+      console.log('💾 Saving contacts to draft...')
+      const draftRes = await fetch('/api/campaigns/draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campaignId: campaign.campaignId,
+          contactsSummary: {
+            count: data.count || data.contacts?.length || 0,
+            items: data.contacts || [],
+          },
+          contactCount: data.count || data.contacts?.length || 0,
+        }),
+      })
+
+      if (!draftRes.ok) {
+        console.warn('⚠️ Failed to save contacts to draft, but extraction succeeded')
+      } else {
+        console.log('✅ Contacts saved to draft')
+      }
+      
+      return true
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to upload contacts'
+      setError(errorMsg)
+      console.error('Error uploading contacts:', err)
+      return false
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
@@ -59,54 +110,52 @@ export default function ContactsPage() {
       file.type === 'text/csv' || file.name.endsWith('.csv') || file.name.endsWith('.xlsx')
     )
 
-    if (files.length > 0) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        try {
-          const text = event.target?.result as string
-          const parsed = parseCSV(text)
-          if (parsed.length > 0) {
-            setContacts(parsed)
-            setError('')
-          } else {
-            setError('No valid contacts found')
-          }
-        } catch (err) {
-          setError('Failed to parse file')
-        }
-      }
-      reader.readAsText(files[0])
+    if (files.length === 0) {
+      setError('Please drop a CSV or Excel file')
+      return
+    }
+
+    const file = files[0]
+    setContactsFile(file)
+    updateCampaign({ contactsFile: file })
+
+    // Upload immediately
+    const uploaded = await uploadContacts(file)
+    if (!uploaded) {
+      setContactsFile(null)
+      updateCampaign({ contactsFile: null })
     }
   }
 
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        try {
-          const text = event.target?.result as string
-          const parsed = parseCSV(text)
-          if (parsed.length > 0) {
-            setContacts(parsed)
-            setError('')
-          } else {
-            setError('No valid contacts found in CSV')
-          }
-        } catch (err) {
-          setError('Failed to parse CSV file')
-        }
-      }
-      reader.readAsText(e.target.files[0])
+  const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setContactsFile(file)
+    updateCampaign({ contactsFile: file })
+
+    // Upload immediately
+    const uploaded = await uploadContacts(file)
+    if (!uploaded) {
+      setContactsFile(null)
+      updateCampaign({ contactsFile: null })
     }
   }
 
   const handleContinue = () => {
-    if (contacts.length === 0) {
-      setError('Please upload contacts')
+    if (!contactsFile) {
+      setError('Please upload a contacts file')
       return
     }
-    updateCampaign({ contacts })
+
     router.push('/campaign/preview')
+  }
+
+  const removeContactsFile = () => {
+    setContactsFile(null)
+    setExtractedContacts([])
+    setContactCount(0)
+    updateCampaign({ contactsFile: null })
   }
 
   return (
@@ -131,7 +180,7 @@ export default function ContactsPage() {
         <div className="space-y-3">
           <div className="text-4xl">📊</div>
           <div>
-            <p className="text-white">Drag CSV or Excel file here or</p>
+            <p className="text-white">Drag Excel file or CSV file here or</p>
             <label className="text-white/80 cursor-pointer hover:text-white">
               click to browse
               <input
@@ -146,31 +195,68 @@ export default function ContactsPage() {
         </div>
       </div>
 
-      {/* Contacts summary */}
-      {contacts.length > 0 && (
-        <div>
-          <div className="bg-black/40 border border-white/10 rounded-xl p-4">
-            <p className="text-sm font-semibold text-white">
-              ✓ {contacts.length} contact{contacts.length !== 1 ? 's' : ''} detected
-            </p>
-          </div>
+      {/* Show filename when selected */}
+      {contactsFile && (
+        <div className="px-4 py-2.5 rounded-lg bg-blue-900/40 border border-blue-500/40 text-blue-200 text-sm">
+          ✓ Selected: <span className="font-medium">{contactsFile.name}</span>
         </div>
       )}
 
       {error && <p className="text-sm text-red-400">{error}</p>}
 
+      {/* Show extracted contacts list */}
+      {extractedContacts.length > 0 && (
+        <div className="space-y-3">
+          <div>
+            <h2 className="text-lg font-semibold text-white mb-3">
+              Extracted Contacts ({contactCount})
+            </h2>
+            <div className="max-h-64 overflow-y-auto space-y-2">
+              {extractedContacts.slice(0, 50).map((contact, idx) => (
+                <div
+                  key={idx}
+                  className="px-4 py-3 rounded-lg bg-slate-900/50 border border-slate-700/50 text-sm"
+                >
+                  <p className="text-white font-medium">{contact.name}</p>
+                  <p className="text-slate-300 text-xs mt-0.5">{contact.phone}</p>
+                </div>
+              ))}
+              {extractedContacts.length > 50 && (
+                <p className="text-slate-400 text-xs pt-2">
+                  ...and {extractedContacts.length - 50} more contacts
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {contactsFile && (
+        <div className="flex items-center gap-3 pt-2">
+          <button
+            onClick={removeContactsFile}
+            disabled={isUploading}
+            className="text-sm text-red-400 hover:text-red-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            ✕ Remove file
+          </button>
+        </div>
+      )}
+
       <div className="flex justify-between gap-3 pt-4">
         <button
-          onClick={() => router.push('/campaign/assets')}
-          className="px-6 py-2.5 rounded-lg bg-black/40 border border-white/20 hover:bg-black/50 text-white font-medium transition cursor-pointer"
+          onClick={() => router.push('/campaign/docs')}
+          className="px-6 py-2.5 rounded-lg bg-black/40 border border-white/20 hover:bg-black/50 text-white font-medium transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isUploading}
         >
           Back
         </button>
         <button
           onClick={handleContinue}
-          className="px-6 py-2.5 rounded-lg bg-white hover:bg-white/95 text-black font-semibold transition shadow-[0_4px_12px_rgba(255,255,255,0.2)] cursor-pointer"
+          disabled={isUploading}
+          className="px-6 py-2.5 rounded-lg bg-white hover:bg-white/95 text-black font-semibold transition shadow-[0_4px_12px_rgba(255,255,255,0.2)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Continue
+          {isUploading ? '⟳ Uploading...' : 'Continue to preview'}
         </button>
       </div>
     </div>

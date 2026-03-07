@@ -10,6 +10,7 @@ const steps = [
   { name: 'Description', path: '/campaign/description' },
   { name: 'Channels', path: '/campaign/channels' },
   { name: 'Assets', path: '/campaign/assets' },
+  { name: 'Docs', path: '/campaign/docs' },
   { name: 'Contacts', path: '/campaign/contacts' },
   { name: 'Preview', path: '/campaign/preview' },
 ]
@@ -34,15 +35,21 @@ export default function CampaignLayout({ children }: { children: React.ReactNode
           </a>
           <div className="flex items-center gap-4">
             <Link
+              href="/yourcampaigns"
+              className="text-xl font-medium text-black px-2 py-1.5 border-2 border-black rounded-xl hover:bg-black/10 transition cursor-pointer"
+            >
+              Your Campaigns
+            </Link>
+            <Link
               href="/inbox"
-              className="text-xl font-medium text-black px-2 py-1.5 border-2 border-black rounded-xl  hover:bg-black/10 transition cursor-pointer"
+              className="text-xl font-medium text-black px-2 py-1.5 border-2 border-black rounded-xl hover:bg-black/10 transition cursor-pointer"
             >
               Inbox
             </Link>
           </div>
         </div>
-        <div className="relative z-10 mb-10 flex flex-col items-center justify-center font-['Google Sans Flex'] ">
-          <h1 className='text-7xl text-black '>Let's Start Your Campaign</h1>
+        <div className="relative z-10 mb-20 flex flex-col items-center justify-center font-['Google Sans Flex'] mt-10 ">
+          <h1 className='text-7xl text-black tracking-tight '>Let's start your Campaign</h1>
         </div>
         {/* Content */}
         <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 py-2">

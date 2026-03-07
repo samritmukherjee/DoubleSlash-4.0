@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   experimental: {
     proxyClientMaxBodySize: "50mb",
   },
-  serverExternalPackages: ['pdf-parse', 'ws'],
+  serverExternalPackages: ['pdf-parse', 'ws', 'fluent-ffmpeg', 'ffmpeg-static'],
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,

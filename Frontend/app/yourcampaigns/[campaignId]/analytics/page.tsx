@@ -208,8 +208,8 @@ export default function CampaignAnalyticsPage() {
               <MdPeople className="text-cyan-400 text-xl" />
               <span className="text-[10px] text-cyan-400/60 group-hover:text-cyan-400 transition-colors uppercase tracking-widest">View →</span>
             </div>
-            <p className="text-3xl font-bold text-cyan-400">{totalContacts}</p>
-            <p className="text-xs text-white/40 mt-1">Total Contacts</p>
+            <p className="text-3xl font-bold text-cyan-400">{whatsappInteractedUsers}</p>
+            <p className="text-xs text-white/40 mt-1">Users Interacted</p>
           </div>
           {/* Engagement score */}
           <div className="relative bg-gradient-to-br from-amber-500/10 to-amber-500/0 border border-amber-500/20 rounded-2xl p-5 overflow-hidden col-span-2 sm:col-span-1">

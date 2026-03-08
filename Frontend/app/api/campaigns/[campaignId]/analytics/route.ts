@@ -43,6 +43,7 @@ export async function GET(
         callsMissed: 0,
         whatsappMessagesSent: 0,
         whatsappInteractedUsers: 0,
+        totalContacts: 0,
         whatsappConversations: [],
         answeredContacts: [],
         missedContacts: []
@@ -65,6 +66,17 @@ export async function GET(
     const whatsappData = analysisData?.whatsapp || {}
     const whatsappMessagesSent = whatsappData?.totalMessages || 0
     const whatsappInteractedUsers = whatsappData?.totalUsers || 0
+
+    // Fetch total contacts from inbox/contacts document
+    const inboxContactsDoc = await db_ref
+      .collection('users')
+      .doc(userId)
+      .collection('campaigns')
+      .doc(campaignId)
+      .collection('inbox')
+      .doc('contacts')
+      .get()
+    const totalContacts = inboxContactsDoc.exists ? (inboxContactsDoc.data()?.totalContacts || 0) : 0
 
     // Extract conversations and users
     let conversations: any[] = []
@@ -97,6 +109,7 @@ export async function GET(
       // WhatsApp metrics from analysis collection
       whatsappMessagesSent,
       whatsappInteractedUsers,
+      totalContacts,
       whatsappConversations: conversations,
       
       // Status from analysis collection

@@ -70,6 +70,7 @@ export default function CampaignAnalyticsPage() {
   const { 
     whatsappMessagesSent = 0, 
     whatsappInteractedUsers = 0, 
+    totalContacts = 0,
     whatsappConversations = [],
     answeredContacts = [],
     missedContacts = []
@@ -90,11 +91,12 @@ export default function CampaignAnalyticsPage() {
     { name: 'Missed', value: voiceCallsMissed, color: '#ef4444' },
   ]
 
-  // Donut chart — WhatsApp reply ratio
+  // Donut chart — WhatsApp reply ratio (interacted vs total contacts)
   const waReplied = whatsappInteractedUsers
-  const waNotReplied = Math.max(0, whatsappMessagesSent - whatsappInteractedUsers)
-  const waReplyRate = whatsappMessagesSent > 0
-    ? Math.round((waReplied / whatsappMessagesSent) * 100)
+  const waTotal = totalContacts > 0 ? totalContacts : Math.max(whatsappMessagesSent, whatsappInteractedUsers)
+  const waNotReplied = Math.max(0, waTotal - waReplied)
+  const waReplyRate = waTotal > 0
+    ? Math.round((waReplied / waTotal) * 100)
     : 0
   const waChartData = [
     { name: 'Users Interacted', value: waReplied || 0, color: '#06b6d4' },
@@ -195,7 +197,7 @@ export default function CampaignAnalyticsPage() {
               <span className="text-[10px] text-green-400/60 group-hover:text-green-400 transition-colors uppercase tracking-widest">View →</span>
             </div>
             <p className="text-3xl font-bold text-green-400">{whatsappMessagesSent}</p>
-            <p className="text-xs text-white/40 mt-1">Contacts Messaged</p>
+            <p className="text-xs text-white/40 mt-1">Total Messages Sent</p>
           </div>
           <div
             onClick={() => setWhatsappModal('users')}
@@ -206,8 +208,8 @@ export default function CampaignAnalyticsPage() {
               <MdPeople className="text-cyan-400 text-xl" />
               <span className="text-[10px] text-cyan-400/60 group-hover:text-cyan-400 transition-colors uppercase tracking-widest">View →</span>
             </div>
-            <p className="text-3xl font-bold text-cyan-400">{whatsappInteractedUsers}</p>
-            <p className="text-xs text-white/40 mt-1">WhatsApp Users Interacted</p>
+            <p className="text-3xl font-bold text-cyan-400">{totalContacts}</p>
+            <p className="text-xs text-white/40 mt-1">Total Contacts</p>
           </div>
           {/* Engagement score */}
           <div className="relative bg-gradient-to-br from-amber-500/10 to-amber-500/0 border border-amber-500/20 rounded-2xl p-5 overflow-hidden col-span-2 sm:col-span-1">
@@ -266,7 +268,7 @@ export default function CampaignAnalyticsPage() {
           <div className="bg-white/[0.02] border border-white/8 rounded-2xl p-7 backdrop-blur-sm flex flex-col">
             <div className="mb-6">
               <h3 className="font-semibold text-white/80">WhatsApp Reply Rate</h3>
-              <p className="text-xs text-white/30 mt-0.5">{whatsappMessagesSent} msgs sent · {whatsappInteractedUsers} users interacted</p>
+              <p className="text-xs text-white/30 mt-0.5">{whatsappInteractedUsers} interacted · {waTotal} total contacts</p>
             </div>
             <div className="flex-1 flex flex-col items-center justify-center">
               <div className="relative w-44 h-44">
@@ -295,8 +297,8 @@ export default function CampaignAnalyticsPage() {
                   </div>
                 ))}
                 <div className="pt-2 border-t border-white/5 flex items-center justify-between text-xs text-white/30">
-                  <span>Total contacts messaged</span>
-                  <span className="font-medium text-white/50">{whatsappMessagesSent}</span>
+                  <span>Total contacts</span>
+                  <span className="font-medium text-white/50">{waTotal}</span>
                 </div>
               </div>
             </div>

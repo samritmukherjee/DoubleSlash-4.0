@@ -95,7 +95,7 @@ export default function CampaignLayout({ children }: { children: React.ReactNode
                       `}
                     >
                       {isCompleted && (
-                        <span className="mr-1 opacity-70">✓</span>
+                        <span className="mr-1 opacity-70"></span>
                       )}
                       {step.name}
                       {isCurrent && (

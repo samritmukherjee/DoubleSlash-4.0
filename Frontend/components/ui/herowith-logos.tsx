@@ -32,7 +32,7 @@ const FUIHeroWithBorders = ({
                     </div> */}
         </div>
         <div>
-          <div className="mx-auto flex h-[288px] max-w-[80vw] shrink-0 flex-col items-center justify-center gap-2 px-2 py-4 sm:px-10 lg:px-24">
+          <div className="mx-auto flex min-h-[200px] max-w-[80vw] shrink-0 flex-col items-center justify-center gap-2 px-2 py-6 sm:px-10 lg:px-24">
             <h1 className="text-text-primary dark:text-dark-text-primary text-pretty text-center text-4xl  sm:text-5xl md:text-6xl  lg:text-[clamp(50px,7vw,75px)] font-medium leading-none tracking-[-1.44px] md:max-w-screen-lg md:tracking-[-2.16px]">
               Start AI‑Powered Campaigns from Anywhere
             </h1>

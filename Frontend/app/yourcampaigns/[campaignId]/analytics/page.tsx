@@ -77,8 +77,8 @@ export default function CampaignAnalyticsPage() {
   
   // Demo override
   const voiceCallsAnswered = 1
-  const voiceCallsMissed = 3
-  const voiceCalls = voiceCallsAnswered + voiceCallsMissed
+  const voiceCallsMissed = 1
+  const voiceCalls = 2
   const voiceCallsAnsweredRate = Math.round((voiceCallsAnswered / voiceCalls) * 100)
   const engagementScore = voiceCalls > 0
     ? Math.round((voiceCallsAnswered / voiceCalls) * 100)

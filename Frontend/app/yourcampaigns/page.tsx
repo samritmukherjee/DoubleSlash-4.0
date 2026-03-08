@@ -172,12 +172,12 @@ export default function YourCampaignsPage() {
                 Back
               </Link>
               <div className="flex items-center gap-4">
-                <Link
+                 {/* <Link
                   href="/inbox"
                   className="px-5 py-2.5 rounded-lg border border-white/20 text-white hover:border-white/40 hover:bg-white/5 transition-all duration-300 text-sm font-medium"
                 >
-                  Inbox
-                </Link>
+                Inbox
+                </Link>  */}
                 <Link
                   href="/campaign/title"
                   className="px-5 py-2.5 rounded-lg bg-white text-black hover:bg-white/90 transition-all duration-300 text-sm font-semibold"
@@ -186,8 +186,8 @@ export default function YourCampaignsPage() {
                 </Link>
               </div>
             </div>
-            <div>
-              <h1 className="text-5xl font-bold text-white mb-2">Your Campaigns</h1>
+            <div className="w-full text-center">
+              <h1 className="text-6xl  text-white mb-2">Your Campaigns</h1>
               <p className="text-white/50 text-lg">Manage and monitor your outreach campaigns</p>
             </div>
           </div>

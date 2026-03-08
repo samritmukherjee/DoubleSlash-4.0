@@ -6,6 +6,8 @@
 
 **AI-powered multi-channel campaign automation platform**
 
+YouTube Video : https://www.youtube.com/watch?v=u6DrlZKFz_k
+
 Launch, manage, and analyze outreach campaigns across WhatsApp, Voice, and AI Phone Calls — all from a single interface.
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)

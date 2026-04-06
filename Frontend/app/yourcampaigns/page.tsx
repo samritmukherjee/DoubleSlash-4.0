@@ -187,7 +187,7 @@ export default function YourCampaignsPage() {
               </div>
             </div>
             <div className="w-full text-center">
-              <h1 className="text-6xl font-instrument text-white mb-2">Your Campaigns</h1>
+              <h1 className="text-6xl font-instrument text-white mb-2">Your <span className= "italic">Campaigns </span></h1>
               <p className="text-white/50 text-lg">Manage and monitor your outreach campaigns</p>
             </div>
           </div>

@@ -63,7 +63,7 @@ const FeatureSection = ({
               </span>
             </div>
 
-            <h2 className="text-3xl md:text-5xl  text-white mb-4 leading-tight">
+            <h2 className="text-3xl md:text-5xl  text-white mb-4 leading-tight font-instrument">
               {title}
             </h2>
 

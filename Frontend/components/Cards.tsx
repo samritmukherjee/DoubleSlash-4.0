@@ -44,8 +44,8 @@ const Cards = () => {
     <div className='w-full bg-black py-20 px-4 md:px-8 lg:px-16 mb-50'>
       <div className='max-w-6xl mx-auto mb-16'>
         <h2 className=' text-white/80 leading-none'>
-          <span className='block text-left text-xl md:text-4xl ml-5'>Built for modern</span>
-          <span className='block text-center text-6xl md:text-[20vh]'>Outreach.</span>
+          <span className='block text-left text-xl md:text-4xl ml-5 font-instrument'>Built for modern</span>
+          <span className='block text-center text-6xl md:text-[20vh] font-instrument italic'>Outreach.</span>
         </h2>
       </div>
       <div className='grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto'>
@@ -93,7 +93,7 @@ const Cards = () => {
               ></div>
               
               <div className='relative z-10'>
-                <h3 className='text-4xl  text-white mb-3'>
+                <h3 className='text-4xl  text-white mb-3 font-instrument'>
                   {feature.title}
                 </h3>
                 <p className='text-sm text-white/70 leading-relaxed'>

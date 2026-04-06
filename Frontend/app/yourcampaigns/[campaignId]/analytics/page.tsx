@@ -142,8 +142,8 @@ export default function CampaignAnalyticsPage() {
         {/* ── Page header ── */}
         <div className="mb-10 text-center">
           <p className="text-xs text-white/30 uppercase tracking-widest mb-2">Campaign Analytics</p>
-          <h1 className="text-3xl md:text-6xl font-normal tracking-tight">Performance Overview</h1>
-          <p className="text-2xl text-white/70 font-normal mt-2">{campaignName ?? campaignId}</p>
+          <h1 className="text-3xl md:text-6xl font-instrument font-normal tracking-tight">Performance Overview</h1>
+          <p className="text-2xl text-white/70 font-instrument font-normal mt-2">{campaignName ?? campaignId}</p>
         </div>
 
         {/* ── Hero KPI strip ── */}

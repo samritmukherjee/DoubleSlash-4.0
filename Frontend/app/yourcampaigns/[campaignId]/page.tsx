@@ -243,7 +243,7 @@ export default function CampaignDetailPage() {
 
             {/* Title Section */}
             <div className="mb-8 text-center">
-              <h1 className="text-5xl font-normal text-white mb-2">{loadedCampaign.title}</h1>
+              <h1 className="text-5xl font-normal font-instrument text-white mb-2">{loadedCampaign.title}</h1>
               <p className="text-white/50 text-md">Campaign Details & Configuration</p>
             </div>
           </div>

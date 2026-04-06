@@ -187,7 +187,7 @@ export default function YourCampaignsPage() {
               </div>
             </div>
             <div className="w-full text-center">
-              <h1 className="text-6xl  text-white mb-2">Your Campaigns</h1>
+              <h1 className="text-6xl font-instrument text-white mb-2">Your Campaigns</h1>
               <p className="text-white/50 text-lg">Manage and monitor your outreach campaigns</p>
             </div>
           </div>
@@ -266,7 +266,7 @@ export default function YourCampaignsPage() {
                       {/* Content */}
                       <div className="relative z-10">
                         {/* Title */}
-                        <h3 className="text-white font-bold text-2xl mb-3 line-clamp-1 group-hover:text-white/90 transition-colors">
+                        <h3 className="text-white text-2xl mb-3 line-clamp-1  group-hover:text-white/90 transition-colors">
                           {campaign.title || 'Untitled Campaign'}
                         </h3>
 

@@ -105,21 +105,16 @@ export default function YourCampaignsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black">
-      
-        <div className="max-w-6xl mx-auto px-4 py-12">
-          <div className="flex items-center justify-center h-[60vh]">
-            <div className="text-center space-y-3">
-              <div className="flex justify-center">
-                <img 
-                  src="/favicon.svg" 
-                  alt="Loading" 
-                  className="w-12 h-12 animate-spin"
-                />
-              </div>
-              <p className="text-white">Loading your campaigns...</p>
-            </div>
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6">
+        <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <img 
+              src="/favicon.svg" 
+              alt="Loading" 
+              className="w-16 h-16 animate-spin opacity-80"
+            />
           </div>
+          <p className="text-white/70 text-lg font-medium animate-pulse">Loading your campaigns...</p>
         </div>
       </div>
     )
@@ -188,7 +183,7 @@ export default function YourCampaignsPage() {
             </div>
             <div className="w-full text-center">
               <h1 className="text-6xl font-instrument text-white mb-2">Your <span className= "italic">Campaigns </span></h1>
-              <p className="text-white/50 text-lg">Manage and monitor your outreach campaigns</p>
+              <p className="text-white/50 text-lg font-sans">Manage and monitor your outreach campaigns</p>
             </div>
           </div>
 
@@ -266,12 +261,12 @@ export default function YourCampaignsPage() {
                       {/* Content */}
                       <div className="relative z-10">
                         {/* Title */}
-                        <h3 className="text-white text-2xl mb-3 line-clamp-1  group-hover:text-white/90 transition-colors">
+                        <h3 className="text-white text-2xl mb-3 line-clamp-1 group-hover:text-white/90 transition-colors font-instrument">
                           {campaign.title || 'Untitled Campaign'}
                         </h3>
 
                         {/* Description */}
-                        <p className="text-white/60 text-sm line-clamp-3 leading-relaxed">
+                        <p className="text-white/60 text-sm line-clamp-3 leading-relaxed font-sans">
                           {(() => {
                             let desc = ''
                             if (typeof campaign.description === 'object' && campaign.description) {
@@ -285,7 +280,7 @@ export default function YourCampaignsPage() {
 
                         {/* Quick Stats Overlay */}
                         {(campaign as any).vapiStats && (
-                          <div className="mt-4 flex gap-4">
+                          <div className="mt-4 flex gap-4 font-sans">
                             <div className="flex flex-col">
                               <span className="text-[10px] text-white/30 uppercase tracking-tighter">Total Calls</span>
                               <span className="text-sm font-bold text-blue-400">{(campaign as any).vapiStats.totalCalls}</span>

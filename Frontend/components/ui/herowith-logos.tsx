@@ -36,7 +36,7 @@ const FUIHeroWithBorders = ({
             <h1 className="text-text-primary dark:text-dark-text-primary text-pretty text-center text-5xl sm:text-6xl md:text-7xl lg:text-[clamp(60px,8vw,90px)] font-normal font-instrument leading-none tracking-[-1.44px] md:max-w-5xl md:tracking-[-2.16px]">
               Start AI‑Powered <i className="italic">Campaigns</i> from Anywhere
             </h1>
-            <h2 className="text-md text-text-tertiary dark:text-dark-text-tertiary max-w-2xl text-pretty text-center md:text-lg">
+            <h2 className="text-md text-text-tertiary dark:text-dark-text-tertiary max-w-2xl text-pretty text-center md:text-lg font-sans">
               OutreachX is an Agentic AI‑driven campaign automation platform
               that autonomously launches, manages, and analyzes digital outreach
               campaigns — all with a single click.{" "}
@@ -49,7 +49,7 @@ const FUIHeroWithBorders = ({
             <button className=" w-full">
               <div
                 className={clsx(
-                  "!h-14 flex-col items-center justify-center rounded-none !text-base",
+                  "!h-14 flex-col items-center justify-center rounded-none !text-base font-sans",
                   "max-w-sm:!border-x-0 dark:border-dark-border flex w-full !border-x !border-y-0 border-white/10 !bg-transparent backdrop-blur-xl transition-colors duration-150 hover:!bg-black/5 dark:hover:!bg-white/5",
                 )}
               >
@@ -63,7 +63,7 @@ const FUIHeroWithBorders = ({
               >
                 <div
                   className={clsx(
-                    "text-white dark:text-black boder-2 !h-14 flex-col items-center justify-center rounded-none border-none !text-base",
+                    "text-white dark:text-black boder-2 !h-14 flex-col items-center justify-center rounded-none border-none !text-base font-sans",
                     "flex w-full border-[1.2px] border-white/5 bg-gradient-to-tr from-purple-800 via-purple-700 to-purple-400 hover:opacity-90 transition-opacity",
                   )}
                 >
@@ -75,7 +75,7 @@ const FUIHeroWithBorders = ({
                 <button className="cursor-pointer w-full">
                   <div
                     className={clsx(
-                      "text-white dark:text-black boder-2 !h-14 flex-col items-center justify-center rounded-none border-none !text-base",
+                      "text-white dark:text-black boder-2 !h-14 flex-col items-center justify-center rounded-none border-none !text-base font-sans",
                       "flex w-full border-[1.2px] border-white/5 bg-gradient-to-tr from-purple-800 via-purple-700 to-purple-400 hover:opacity-90 transition-opacity",
                     )}
                   >

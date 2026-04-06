@@ -50,7 +50,7 @@ export async function POST(request: NextRequest, { params }: Ctx) {
     const isVoice = channel === 'voice'
 
     const prompt = isVoice
-      ? `You are an expert outreach specialist creating a WhatsApp voice note for parents.
+      ? `You are an expert outreach specialist creating a WhatsApp voice note.
 
 Using this campaign information:
 
@@ -58,13 +58,13 @@ Using this campaign information:
 **Campaign Description:** "${description}"
 **Tone:** ${toneOfVoice}
 
-Create a short, ${toneOfVoice} WhatsApp voice note script that will be recorded and sent to parents. 
+Create a short, ${toneOfVoice} WhatsApp voice note script that will be recorded and sent to the target audience. 
 
 Requirements:
 - Start with a warm greeting
 - Single paragraph, conversational and natural
 - 20-30 seconds when read aloud (approximately 50-75 words)
-- Second person perspective ("you", "your family")
+- Second person perspective ("you", "your team", "your family")
 - No Agent/Customer labels or dialogue
 - Include a subtle call-to-action
 - Sound warm, genuine, and friendly
@@ -79,7 +79,7 @@ Using this campaign information:
 **Campaign Description:** "${description}"
 **Tone:** ${toneOfVoice}
 
-Create a short phone call script that will be spoken by an automated system to parents.
+Create a short phone call script that will be spoken by an automated system to the target recipients.
 
 Requirements:
 - Start with a warm greeting
@@ -88,10 +88,10 @@ Requirements:
 - One continuous monologue (no back-and-forth dialogue)
 - No "Agent:", "Customer:", or any speaker labels
 - 20-30 seconds when read aloud (approximately 50-75 words)
-- Second person perspective ("you", "your family")
+- Second person perspective ("you", "your team", "your family")
 - ${toneOfVoice} in tone and delivery
 - Include a natural call-to-action
-- Friendly, concise, and respectful of parent's time
+- Friendly, concise, and respectful of the recipient's time
 
 Return only the script text, no additional commentary.`
 

@@ -67,7 +67,7 @@ const FeatureSection = ({
               {title}
             </h2>
 
-            <p className="text-white/60 text-sm md:text-base leading-relaxed">{description}</p>
+            <p className="text-white/60 text-sm md:text-base leading-relaxed font-sans">{description}</p>
           </div>
 
           {/* Right side - Video */}

@@ -307,15 +307,15 @@ export default function AssetsPage() {
   return (
     <div className="space-y-6 campaign-page-enter">
       <div>
-        <h1 className="text-3xl  text-white mb-2">Add campaign assets</h1>
-        <p className="text-slate-400">Upload files or generate images with AI</p>
+        <h1 className="text-3xl text-white mb-2 font-sans">Add campaign assets</h1>
+        <p className="text-slate-400 font-sans">Upload files or generate images with AI</p>
       </div>
 
       {/* Tab Toggle: Upload vs Generate */}
       <div className="flex gap-3">
         <button
           onClick={() => setShowGenerateUI(false)}
-          className={`px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-lg font-sans font-medium transition flex items-center gap-2 ${
             !showGenerateUI
               ? 'bg-white text-black'
               : 'bg-white/10 border border-white/20 text-white hover:bg-white/20'
@@ -326,7 +326,7 @@ export default function AssetsPage() {
         </button>
         <button
           onClick={() => setShowGenerateUI(true)}
-          className={`px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-lg font-sans font-medium transition flex items-center gap-2 ${
             showGenerateUI
               ? 'bg-white text-black'
               : 'bg-white/10 border border-white/20 text-white hover:bg-white/20'
@@ -405,7 +405,7 @@ export default function AssetsPage() {
           <div className="space-y-4">
             {/* Generate Prompt Input */}
             <div className="space-y-2">
-              <label className="block text-sm text-white font-medium">
+              <label className="block text-sm text-white font-sans font-medium">
                 Describe the image you want to generate
               </label>
               <textarea

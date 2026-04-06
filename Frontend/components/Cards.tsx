@@ -93,10 +93,10 @@ const Cards = () => {
               ></div>
               
               <div className='relative z-10'>
-                <h3 className='text-4xl  text-white mb-3 font-instrument'>
+                <h3 className='text-4xl text-white mb-3 font-instrument'>
                   {feature.title}
                 </h3>
-                <p className='text-sm text-white/70 leading-relaxed'>
+                <p className='text-sm text-white/70 leading-relaxed font-sans'>
                   {feature.description}
                 </p>
               </div>

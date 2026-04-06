@@ -104,25 +104,25 @@ export default function ChannelsPage() {
   return (
     <div className="space-y-6 campaign-page-enter">
       <div>
-        <h1 className="text-3xl  text-white mb-2">Choose channels</h1>
-        <p className="text-slate-400">Select which channels you want to use for this campaign</p>
+        <h1 className="text-3xl text-white mb-2 font-sans">Choose channels</h1>
+        <p className="text-slate-400 font-sans">Select which channels you want to use for this campaign</p>
       </div>
 
       {/* Channel Selection */}
       <div>
         <div className="grid grid-cols-3 gap-3">
           {channelOptions.map((channel) => (
-            <button
-              key={channel}
-              onClick={() => toggleChannel(channel)}
-              className={`px-4 py-3 rounded-2xl cursor-pointer transition ${
-                selectedChannels.has(channel)
-                  ? 'bg-white text-black hover:bg-white/95 shadow-[0_4px_12px_rgba(255,255,255,0.2)]'
-                  : 'bg-black/40 border border-white/20 text-white/70 hover:bg-black/50'
-              }`}
-            >
-              {channel.charAt(0).toUpperCase() + channel.slice(1)}
-            </button>
+              <button
+                key={channel}
+                onClick={() => toggleChannel(channel)}
+                className={`px-4 py-3 rounded-2xl cursor-pointer transition font-sans font-medium ${
+                  selectedChannels.has(channel)
+                    ? 'bg-white text-black hover:bg-white/95 shadow-[0_4px_12px_rgba(255,255,255,0.2)]'
+                    : 'bg-black/40 border border-white/20 text-white/70 hover:bg-black/50'
+                }`}
+              >
+                {channel.charAt(0).toUpperCase() + channel.slice(1)}
+              </button>
           ))}
         </div>
         {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
@@ -131,13 +131,13 @@ export default function ChannelsPage() {
       {/* Tone of Voice */}
       {showTone && (
         <div>
-          <h3 className="text-sm  text-white mb-3">Tone of voice</h3>
+          <h3 className="text-sm text-white mb-3 font-sans">Tone of voice</h3>
           <div className="flex flex-wrap gap-2">
             {toneOptions.map((option) => (
               <button
                 key={option}
                 onClick={() => setTone(option)}
-                className={`px-3 py-1.5 rounded-full text-sm cursor-pointer transition ${
+                className={`px-3 py-1.5 rounded-full text-sm cursor-pointer transition font-sans ${
                   tone === option
                     ? 'bg-white text-black hover:bg-white/95'
                     : 'bg-black/40 border border-white/20 text-white/70 hover:bg-black/50'

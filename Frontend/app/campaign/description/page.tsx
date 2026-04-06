@@ -94,8 +94,8 @@ export default function DescriptionPage() {
   return (
     <div className="space-y-6 campaign-page-enter">
       <div>
-        <h1 className="text-3xl  text-white mb-2">Describe your campaign</h1>
-        <p className="text-slate-400">Tell us what your campaign is about and what you want to achieve</p>
+        <h1 className="text-3xl text-white mb-2 font-sans">Describe your campaign</h1>
+        <p className="text-slate-400 font-sans">Tell us what your campaign is about and what you want to achieve</p>
       </div>
 
       <div className="relative">
@@ -111,7 +111,7 @@ export default function DescriptionPage() {
             onKeyDown={handleKeyDown}
             placeholder="Describe your campaign message, goals, and key details..."
             rows={1}
-            className="flex w-full rounded-md border-none bg-transparent px-3 py-2.5 text-base text-gray-100 placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 resize-none max-h-64 font-helvetica"
+            className="flex w-full rounded-md border-none bg-transparent px-3 py-2.5 text-base text-gray-100 placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 resize-none max-h-64 font-sans"
           />
           
           <div className="flex items-end justify-between gap-3 mt-4 pt-4 border-t border-white/5">

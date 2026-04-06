@@ -124,7 +124,7 @@ export function Testimonial() {
                 transition={{ duration: 0.4 }}
                 className="mb-6 lg:mb-8"
               >
-                <span className="inline-flex items-center gap-2 text-xs lg:text-sm  font-mono text-white/70 border border-white/20 rounded-full px-3 py-1.5">
+                <span className="inline-flex items-center gap-2 text-xs lg:text-sm font-sans font-bold text-white/70 border border-white/20 rounded-full px-3 py-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-white" />
                   Step {activeIndex + 1} of {steps.length}
                 </span>
@@ -176,7 +176,7 @@ export function Testimonial() {
               <AnimatePresence mode="wait">
                 <motion.p
                   key={activeIndex}
-                  className="text-lg md:text-xl lg:text-2xl text-white/70 leading-relaxed"
+                  className="text-lg md:text-xl lg:text-2xl text-white/70 leading-relaxed font-sans"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}

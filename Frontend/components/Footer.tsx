@@ -21,7 +21,7 @@ const Footer = () => {
       >
         Launch a Campaign
       </a>
-      <h1 className='text-3xl md:text-[35vh] font-semibold text-white/30 tracking-tight  '>OutreachX</h1>
+      <h1 className="text-3xl md:text-[35vh] font-semibold text-white/30 tracking-tight font-instrument">OutreachX</h1>
       <div className='w-full text-center mb-4'>
         <p className='text-white/50 text-md'>
           &copy; {new Date().getFullYear()} All rights reserved by Team Async

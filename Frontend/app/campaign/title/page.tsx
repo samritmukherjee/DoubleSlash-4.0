@@ -80,8 +80,8 @@ export default function TitlePage() {
   return (
     <div className="space-y-6 campaign-page-enter">
       <div>
-        <h1 className="text-3xl  text-white mb-2">Name your campaign</h1>
-        <p className="text-slate-400">Give your campaign a clear, memorable name</p>
+        <h1 className="text-3xl text-white mb-2 font-sans">Name your campaign</h1>
+        <p className="text-slate-400 font-sans">Give your campaign a clear, memorable name</p>
       </div>
 
       <div className="relative">
@@ -98,7 +98,7 @@ export default function TitlePage() {
             placeholder="e.g., Summer Sale 2026"
             rows={1}
             disabled={isLoading}
-            className="flex w-full rounded-md border-none bg-transparent px-3 py-2.5 text-base text-gray-100 placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 resize-none max-h-64 font-helvetica"
+            className="flex w-full rounded-md border-none bg-transparent px-3 py-2.5 text-base text-gray-100 placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 resize-none max-h-64 font-sans"
           />
           
           <div className="flex items-end justify-end gap-3 mt-4 pt-4 border-t border-white/5">

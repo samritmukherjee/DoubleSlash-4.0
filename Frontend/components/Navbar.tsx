@@ -20,19 +20,19 @@ const Navbar = () => {
           height={20}
           className="w-6 h-6 sm:w-8 sm:h-8 md:w-8 md:h-8"
         />
-        <span className='text-2xl sm:text-3xl font-["Google Sans Flex"] text-white hover:text-white/80 transition'>
+        <span className="text-2xl sm:text-3xl font-sans text-white hover:text-white/80 transition">
           OutreachX
         </span>
       </Link>
       <div className='flex justify-between gap-5 items-center'>
         <SignedOut>
           <SignInButton mode="modal">
-            <button className='bg-white text-black px-2 py-1.5 rounded-xl font-["Helvetica"] cursor-pointer hover:bg-gray-200 '>
+            <button className="bg-white text-black px-2 py-1.5 rounded-xl font-sans font-bold cursor-pointer hover:bg-gray-200">
               Login
             </button>
           </SignInButton>
           <SignUpButton mode="modal">
-            <button className='bg-[#6c47ff] text-white p-2 rounded-xl font-["Helvetica"] cursor-pointer hover:bg-purple-700'>
+            <button className="bg-[#6c47ff] text-white p-2 rounded-xl font-sans font-bold cursor-pointer hover:bg-purple-700">
               Sign Up
             </button>
           </SignUpButton>

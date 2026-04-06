@@ -73,7 +73,7 @@ const HeroVideo = () => {
         </div>
 
         <div className='w-full flex justify-center mt-10 mb-50'>
-          <p className='text-white/50 text-md md:text-2xl py-2 px-2  '>Campaign made simple</p>
+          <p className='text-white/50 text-md md:text-2xl py-2 px-2 font-instrument italic  '>Campaign made simple</p>
         </div>
       </div>
 

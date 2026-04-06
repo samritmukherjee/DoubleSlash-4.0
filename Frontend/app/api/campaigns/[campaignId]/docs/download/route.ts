@@ -12,8 +12,14 @@ export async function GET(request: NextRequest, { params }: Ctx) {
     }
 
     const { campaignId } = await params
+    const { searchParams } = new URL(request.url)
+    const docName = searchParams.get('name')
 
-    console.log('📥 Downloading contacts for campaign:', campaignId)
+    if (!docName) {
+      return NextResponse.json({ error: 'Document name is required' }, { status: 400 })
+    }
+
+    console.log(`📥 Downloading document "${docName}" for campaign:`, campaignId)
 
     let snap = await db
       .collection('users')
@@ -35,62 +41,52 @@ export async function GET(request: NextRequest, { params }: Ctx) {
     }
 
     const data = snap.data() || {}
-    const contactsFile = data.contactsFile
+    const documents: any[] = data.documents || []
+    
+    // Find the document by name
+    const doc = documents.find(d => d.name === docName)
 
-    if (!contactsFile?.url) {
+    if (!doc || !doc.url) {
       return NextResponse.json(
-        { error: 'No contacts file available for download' },
-        { status: 400 }
+        { error: 'Document not found in campaign' },
+        { status: 404 }
       )
     }
 
     // Download file from Cloudinary
-    console.log('📥 Downloading file from Cloudinary:', contactsFile.url)
-    const res = await fetch(contactsFile.url)
+    console.log('📥 Downloading file from Cloudinary:', doc.url)
+    const res = await fetch(doc.url)
 
     if (!res.ok) {
       console.error('Failed to download from Cloudinary:', res.statusText)
       return NextResponse.json(
-        { error: 'Failed to download contacts file' },
+        { error: 'Failed to download document file' },
         { status: 400 }
       )
     }
 
     const buffer = await res.arrayBuffer()
-    let fileName = contactsFile.name || ''
+    let fileName = doc.name || 'document'
     
-    // Fallback: If no name, or name is generic, try to get from URL
-    if (!fileName || fileName === 'contacts') {
-      const urlPart = contactsFile.url.split('/').pop()?.split('?')[0] || ''
-      if (urlPart.includes('.')) {
-        fileName = urlPart
-      } else {
-        // Absolute fallback if everything fails
-        fileName = 'contacts.xlsx'
-      }
+    // Ensure extension
+    if (!fileName.includes('.') && doc.url.includes('.')) {
+      const urlExt = doc.url.split('.').pop()?.split('?')[0]
+      if (urlExt) fileName = `${fileName}.${urlExt}`
     }
 
-    // Ensure filename has an extension if it's missing (e.g. from Cloudinary raw upload)
-    if (!fileName.includes('.') && contactsFile.url.includes('.')) {
-      const urlExt = contactsFile.url.split('.').pop()?.split('?')[0]
-      // Only append if the extension looks like a standard one
-      if (urlExt && ['csv', 'xlsx', 'xls'].includes(urlExt.toLowerCase())) {
-        fileName = `${fileName}.${urlExt}`
-      } else {
-        // Default to xlsx if we can't be sure
-        fileName = `${fileName}.xlsx`
-      }
-    }
-
-    // Determine content type based on file extension
+    // Determine content type
     let contentType = 'application/octet-stream'
     const lowerName = fileName.toLowerCase()
-    if (lowerName.endsWith('.csv')) {
-      contentType = 'text/csv'
-    } else if (lowerName.endsWith('.xlsx')) {
-      contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    } else if (lowerName.endsWith('.xls')) {
-      contentType = 'application/vnd.ms-excel'
+    if (lowerName.endsWith('.pdf')) {
+      contentType = 'application/pdf'
+    } else if (lowerName.endsWith('.docx')) {
+      contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    } else if (lowerName.endsWith('.doc')) {
+      contentType = 'application/msword'
+    } else if (lowerName.endsWith('.png')) {
+      contentType = 'image/png'
+    } else if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')) {
+      contentType = 'image/jpeg'
     }
 
     console.log(`✅ Sending ${fileName} with type ${contentType}`)
@@ -107,9 +103,9 @@ export async function GET(request: NextRequest, { params }: Ctx) {
       },
     })
   } catch (error) {
-    console.error('❌ Download contacts error:', error)
+    console.error('❌ Download document error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to download contacts' },
+      { error: error instanceof Error ? error.message : 'Failed to download document' },
       { status: 500 }
     )
   }

@@ -70,7 +70,7 @@ export function Testimonial() {
       <div ref={containerRef} className="relative w-full max-w-full">
         {/* Oversized index number */}
         <motion.div
-          className="absolute -left-4 md:-left-12 top-1/2 -translate-y-1/2 text-[15vw] md:text-[28rem] font-bold text-white/5 select-none pointer-events-none leading-none tracking-tighter ml-5 md:ml-10"
+          className="absolute -left-4 md:-left-12 top-1/2 -translate-y-1/2 text-[15vw] md:text-[28rem]  text-white/5 select-none pointer-events-none leading-none tracking-tighter ml-5 md:ml-10"
         >
           <AnimatePresence mode="wait">
             <motion.span
@@ -124,7 +124,7 @@ export function Testimonial() {
                 transition={{ duration: 0.4 }}
                 className="mb-6 lg:mb-8"
               >
-                <span className="inline-flex items-center gap-2 text-xs lg:text-sm font-mono text-white/70 border border-white/20 rounded-full px-3 py-1.5">
+                <span className="inline-flex items-center gap-2 text-xs lg:text-sm font-sans font-bold text-white/70 border border-white/20 rounded-full px-3 py-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-white" />
                   Step {activeIndex + 1} of {steps.length}
                 </span>
@@ -136,7 +136,7 @@ export function Testimonial() {
               <AnimatePresence mode="wait">
                 <motion.h2
                   key={activeIndex}
-                  className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white leading-tight tracking-tight"
+                  className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-instrument text-white leading-tight tracking-tight"
                   initial="hidden"
                   animate="visible"
                   exit="exit"
@@ -176,7 +176,7 @@ export function Testimonial() {
               <AnimatePresence mode="wait">
                 <motion.p
                   key={activeIndex}
-                  className="text-lg md:text-xl lg:text-2xl text-white/70 leading-relaxed"
+                  className="text-lg md:text-xl lg:text-2xl text-white/70 leading-relaxed font-sans"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
@@ -263,7 +263,7 @@ export function Testimonial() {
         {/* Bottom ticker - OutreachX only */}
         <div className="absolute -bottom-6 md:-bottom-10 left-0 overflow-hidden opacity-[0.15] pointer-events-none hidden md:block">
           <motion.div
-            className="flex whitespace-nowrap text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter"
+            className="flex whitespace-nowrap text-4xl md:text-5xl lg:text-6xl  tracking-tighter"
             animate={{ x: [0, -2000] }}
             transition={{ duration: 30, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
           >

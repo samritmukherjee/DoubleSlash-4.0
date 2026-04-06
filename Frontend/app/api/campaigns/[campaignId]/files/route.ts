@@ -63,7 +63,7 @@ export async function POST(request: NextRequest, { params }: Context) {
     }
 
     // 2) Upload contacts CSV/Excel
-    let contactsFile: { url: string; publicId: string } | null = null;
+    let contactsFile: { url: string; publicId: string; name?: string } | null = null;
 
     if (contactsFileData) {
       console.log(`📤 Uploading contacts file: ${contactsFileData.name}`);
@@ -72,7 +72,11 @@ export async function POST(request: NextRequest, { params }: Context) {
         `campaigns/${userId}/contacts`,
         "raw"
       );
-      contactsFile = { url: res.secure_url, publicId: res.public_id };
+      contactsFile = { 
+        url: res.secure_url, 
+        publicId: res.public_id,
+        name: contactsFileData.name 
+      };
       console.log(`✅ Contacts file uploaded: ${res.public_id}`);
     }
 

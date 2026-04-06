@@ -54,6 +54,7 @@ export default function CampaignDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [makingCalls, setMakingCalls] = useState(false)
+  const [relaunching, setRelaunching] = useState(false)
   const [callSuccess, setCallSuccess] = useState('')
 
   useEffect(() => {
@@ -138,20 +139,52 @@ export default function CampaignDetailPage() {
     }
   }
 
+  const handleRelaunch = async () => {
+    if (!campaignId) {
+      setError('Campaign ID not found')
+      return
+    }
+
+    try {
+      setError('')
+      setCallSuccess('')
+      setRelaunching(true)
+
+      console.log(' Relaunching campaign:', campaignId)
+      const response = await fetch(`/api/campaigns/${campaignId}/launch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ campaignId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to relaunch campaign')
+      }
+
+      console.log('✅ Campaign relaunched:', data)
+      setCallSuccess('Campaign relaunched successfully! WhatsApp messages are being sent.')
+    } catch (err) {
+      console.error('Error relaunching campaign:', err)
+      setError(err instanceof Error ? err.message : 'Failed to relaunch campaign')
+    } finally {
+      setRelaunching(false)
+    }
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950">
-        <div className="max-w-5xl mx-auto px-6 py-12 flex items-center justify-center h-[60vh]">
-          <div className="text-center space-y-3">
-            <div className="flex justify-center">
-              <img 
-                src="/favicon.svg" 
-                alt="Loading" 
-                className="w-12 h-12 animate-spin"
-              />
-            </div>
-            <p className="text-white">Loading campaign...</p>
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6">
+        <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <img 
+              src="/favicon.svg" 
+              alt="Loading" 
+              className="w-16 h-16 animate-spin opacity-80"
+            />
           </div>
+          <p className="text-white/70 text-lg font-medium animate-pulse">Loading campaign details...</p>
         </div>
       </div>
     )
@@ -212,6 +245,23 @@ export default function CampaignDetailPage() {
               </Link>
               
               <div className="flex items-center gap-3">
+                <button
+                  onClick={handleRelaunch}
+                  disabled={relaunching}
+                  className="px-5 py-2.5 rounded-lg border border-white/20 text-white hover:border-white/40 hover:bg-white/5 transition-all duration-300 text-sm font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {relaunching ? (
+                    <>
+                      <span className="inline-block animate-spin">⏳</span>
+                      Relaunching...
+                    </>
+                  ) : (
+                    <>
+                     
+                      Relaunch
+                    </>
+                  )}
+                </button>
                 <Link
                   href={`/yourcampaigns/${loadedCampaign.id}/analytics`}
                   className="px-5 py-2.5 rounded-lg border border-white/20 text-white hover:border-white/40 hover:bg-white/5 transition-all duration-300 text-sm font-medium flex items-center gap-2"
@@ -243,8 +293,8 @@ export default function CampaignDetailPage() {
 
             {/* Title Section */}
             <div className="mb-8 text-center">
-              <h1 className="text-5xl font-normal text-white mb-2">{loadedCampaign.title}</h1>
-              <p className="text-white/50 text-md">Campaign Details & Configuration</p>
+              <h1 className="text-5xl font-normal font-instrument text-white mb-2">{loadedCampaign.title}</h1>
+              <p className="text-white/50 text-md font-sans">Campaign Details & Configuration</p>
             </div>
           </div>
 
@@ -264,8 +314,8 @@ export default function CampaignDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Description Block - Full Width */}
             <div className="lg:col-span-3 rounded-2xl p-8 bg-white/2 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all">
-              <p className="text-xs text-white/50 mb-3 uppercase tracking-wider">Description</p>
-              <p className="text-white/80 text-base leading-relaxed line-clamp-4">
+              <p className="text-xs text-white/50 mb-3 uppercase tracking-wider font-sans">Description</p>
+              <p className="text-white/80 text-base leading-relaxed line-clamp-4 font-sans">
                 {(typeof loadedCampaign.description === 'object' 
                   ? loadedCampaign.description?.original 
                   : loadedCampaign.description) || 'No description provided'}
@@ -292,10 +342,10 @@ export default function CampaignDetailPage() {
             {/* Channel Blocks */}
             {loadedCampaign.channels.text?.enabled && (
               <div className="rounded-2xl p-6 bg-blue-500/5 backdrop-blur-sm border border-blue-500/20 hover:border-blue-500/40 transition-all flex flex-col">
-                <p className="text-xs text-blue-300/70 mb-4 uppercase tracking-wider">Text</p>
+                <p className="text-xs text-blue-300/70 mb-4 uppercase tracking-wider font-sans">Text</p>
                 <div className="flex-1 flex flex-col justify-center">
-                  <span className="text-3xl font-bold text-white mb-1">{loadedCampaign.channels.text.wordLimit}</span>
-                  <span className="text-xs text-white/40">words max</span>
+                  <span className="text-3xl text-white mb-1 font-instrument">{loadedCampaign.channels.text.wordLimit}</span>
+                  <span className="text-xs text-white/40 font-sans">words max</span>
                 </div>
               </div>
             )}
@@ -305,7 +355,7 @@ export default function CampaignDetailPage() {
                   <MdKeyboardVoice className="w-4 h-4" style={{ color: '#f6f4f0' }} /> Voice
                 </p>
                 <div className="flex-1 flex flex-col justify-center">
-                  <span className="text-3xl font-bold text-white mb-1">{loadedCampaign.channels.voice.maxDurationSeconds}s</span>
+                  <span className="text-3xl  text-white mb-1">{loadedCampaign.channels.voice.maxDurationSeconds}s</span>
                   <span className="text-xs text-white/40">max duration</span>
                 </div>
               </div>
@@ -316,7 +366,7 @@ export default function CampaignDetailPage() {
                   <VscCallOutgoing className="w-4 h-4" style={{ color: '#f6f4f0' }} /> Calls
                 </p>
                 <div className="flex-1 flex flex-col justify-center">
-                  <span className="text-3xl font-bold text-white mb-1">{loadedCampaign.channels.calls.maxCallDurationSeconds}s</span>
+                  <span className="text-3xl  text-white mb-1">{loadedCampaign.channels.calls.maxCallDurationSeconds}s</span>
                   <span className="text-xs text-white/40">max duration</span>
                 </div>
               </div>
@@ -388,8 +438,8 @@ export default function CampaignDetailPage() {
                         <span className="text-white/80 block font-medium line-clamp-1">{doc.name}</span>
                       </div>
                       <a
-                        href={doc.url}
-                        download
+                        href={`/api/campaigns/${campaignId}/docs/download?name=${encodeURIComponent(doc.name)}`}
+                        download={doc.name}
                         className="px-2 py-1 rounded bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 text-xs font-medium transition cursor-pointer whitespace-nowrap ml-2"
                       >
                         Get

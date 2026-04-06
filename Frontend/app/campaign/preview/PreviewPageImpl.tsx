@@ -58,6 +58,7 @@ export default function PreviewPageImpl({ campaignId: propCampaignId, fromCreati
   const [error, setError] = useState('')
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [isLaunching, setIsLaunching] = useState(false)
 
   const [draft, setDraft] = useState({
     title: '',
@@ -437,12 +438,13 @@ export default function PreviewPageImpl({ campaignId: propCampaignId, fromCreati
   }
 
   const handleLaunch = async () => {
-    if (!campaignId) {
+    if (!campaignId || isLaunching) {
       setError('Campaign ID not found. Please go back and try again.')
       return
     }
 
     try {
+      setIsLaunching(true)
       setError('')
       
       // Save any pending edits first
@@ -467,6 +469,7 @@ export default function PreviewPageImpl({ campaignId: propCampaignId, fromCreati
     } catch (err) {
       console.error('Error launching campaign:', err)
       setError(err instanceof Error ? err.message : 'Failed to launch campaign')
+      setIsLaunching(false)
     }
   }
 
@@ -1112,7 +1115,7 @@ export default function PreviewPageImpl({ campaignId: propCampaignId, fromCreati
                 disabled={isRegenerating}
                 className="px-6 py-2.5 rounded-lg bg-purple-600/30 border border-purple-500/30 hover:bg-purple-600/50 text-purple-200 font-medium transition disabled:opacity-50 cursor-pointer"
               >
-                {isRegenerating ? '🤖 Enhancing...' : '🤖 Enhance with AI'}
+                {isRegenerating ? ' Enhancing...' : 'Enhance with AI'}
               </button>
               <button
                 onClick={generatePreview}
@@ -1125,13 +1128,14 @@ export default function PreviewPageImpl({ campaignId: propCampaignId, fromCreati
                 onClick={() => setIsEditing(true)}
                 className="px-6 py-2.5 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20 text-white font-medium transition cursor-pointer"
               >
-                ✏️ Edit
+                Edit
               </button>
               <button
                 onClick={handleLaunch}
-                className="px-6 py-2.5 rounded-lg bg-white hover:bg-white/95 text-black font-semibold transition shadow-[0_4px_12px_rgba(255,255,255,0.2)] cursor-pointer flex items-center gap-2"
+                disabled={isLaunching}
+                className="px-6 py-2.5 rounded-lg bg-white hover:bg-white/95 text-black  transition shadow-[0_4px_12px_rgba(255,255,255,0.2)] cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                ✅ Launch Campaign
+                {isLaunching ? 'Launching...' : 'Launch Campaign'}
               </button>
             </>
           )}

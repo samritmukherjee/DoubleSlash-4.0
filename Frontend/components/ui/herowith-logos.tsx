@@ -33,8 +33,8 @@ const FUIHeroWithBorders = ({
         </div>
         <div>
           <div className="mx-auto flex min-h-[200px] max-w-[80vw] shrink-0 flex-col items-center justify-center gap-2 px-2 py-6 sm:px-10 lg:px-24">
-            <h1 className="text-text-primary dark:text-dark-text-primary text-pretty text-center text-4xl  sm:text-5xl md:text-6xl  lg:text-[clamp(50px,7vw,75px)] font-medium leading-none tracking-[-1.44px] md:max-w-screen-lg md:tracking-[-2.16px]">
-              Start AI‑Powered Campaigns from Anywhere
+            <h1 className="text-text-primary dark:text-dark-text-primary text-pretty text-center text-5xl sm:text-6xl md:text-7xl lg:text-[clamp(60px,8vw,90px)] font-normal font-instrument leading-none tracking-[-1.44px] md:max-w-5xl md:tracking-[-2.16px]">
+              Start AI‑Powered <i className="italic">Campaigns</i> from Anywhere
             </h1>
             <h2 className="text-md text-text-tertiary dark:text-dark-text-tertiary max-w-2xl text-pretty text-center md:text-lg">
               OutreachX is an Agentic AI‑driven campaign automation platform

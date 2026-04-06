@@ -63,8 +63,8 @@ export default function CampaignLayout({ children }: { children: React.ReactNode
         </div>
 
         {/* ── Hero heading ── */}
-        <div className="relative z-10 mb-10 flex flex-col items-center justify-center font-['Google Sans Flex'] mt-10">
-          <h1 className='text-7xl text-black tracking-tight'>Let's start your Campaign</h1>
+        <div className="relative z-10 mb-10 flex flex-col items-center justify-center font-instrument mt-10">
+          <h1 className='text-7xl text-black tracking-tight'>Let's start your <i className='italic'>Campaign</i></h1>
         </div>
 
         {/* ── Content ── */}

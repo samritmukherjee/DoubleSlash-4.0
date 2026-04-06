@@ -17,6 +17,7 @@
   --font-sans: "Google Sans Flex", sans-serif;
   --font-mono: var(--font-geist-mono);
   --font-helvetica: 'Helvetica', 'Helvetica Neue', sans-serif;
+  --font-instrument: "Instrument Serif", serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,30 +30,9 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "Google Sans Flex", sans-serif;
+  font-family: var(--font-sans);
   font-optical-sizing: auto;
   font-weight: 400;
-  font-style: normal;
-  font-variation-settings:
-    "slnt" 0,
-    "wdth" 100,
-    "GRAD" 0,
-    "ROND" 0;
-}
-
-* {
-  font-family: "Google Sans Flex", sans-serif;
-  font-optical-sizing: auto;
-  font-style: normal;
-  font-variation-settings:
-    "slnt" 0,
-    "wdth" 100,
-    "GRAD" 0,
-    "ROND" 0;
-}
-
-body {
-  font-family: 'Google Sans Flex', sans-serif;
   -ms-overflow-style: none;
   scrollbar-width: none;
 }

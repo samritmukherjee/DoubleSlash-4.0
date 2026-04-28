@@ -39,7 +39,7 @@ Launch, manage, and analyze outreach campaigns across WhatsApp, Voice, and AI Ph
 
 ## Overview
 
-OutreachX is a hackathon project (DoubleSlash 4.0) built by **Team Async**. It is an agentic AI-driven campaign automation platform that enables businesses to:
+OutreachX is a hackathon project (Solution Challenge) built by **Team Async**. It is an agentic AI-driven campaign automation platform that enables businesses to:
 
 - Create campaigns in a guided 6-step wizard
 - Send bulk messages across **WhatsApp**, **Voice Notes**, and **AI Phone Calls**
@@ -195,7 +195,7 @@ Step 6 — Preview & Launch
 ## Project Structure
 
 ```
-DoubleSlash-4.0/
+Solution Challenge/
 ├── Frontend/                    # Next.js application
 │   ├── app/
 │   │   ├── page.tsx             # Landing page
@@ -345,7 +345,7 @@ FRONTEND_URL=http://localhost:3000
 **1. Clone the repository**
 ```bash
 git clone <repo-url>
-cd DoubleSlash-4.0
+cd Solution Challenge-4.0
 ```
 
 **2. Start the Frontend**

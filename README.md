@@ -458,7 +458,7 @@ npm run dev
 
 ## Team
 
-**Team Async** — DoubleSlash 4.0
+**Team Async** — Solution Challenge  - Build IT 2026
 
 | Name | Role |
 |---|---|
@@ -471,7 +471,7 @@ npm run dev
 
 <div align="center">
 
-Built with ❤️ by **Team Async** — DoubleSlash 4.0
+Built with ❤️ by **Team Async** — Solution Challenge  - Build IT 2026
 
 </div>
 
